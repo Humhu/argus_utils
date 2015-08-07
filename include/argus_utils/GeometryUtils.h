@@ -1,5 +1,7 @@
 #pragma once
 
+#include <geometry_msgs/Pose.h>
+
 #include <tf/LinearMath/Transform.h> // From tf
 
 #include <Eigen/Geometry>
@@ -28,6 +30,10 @@ Eigen::Quaterniond EulerToQuaternion( const EulerAngles& eul );
 // Convert between PoseSE3 and tf Transform objects
 tf::Transform PoseToTf( const PoseSE3& pose );
 PoseSE3 TfToPose( const tf::Transform& tf );
+
+// Convert between geometry_msgs::Pose message and PoseSE3 objects
+geometry_msgs::Pose PoseToMsg( const PoseSE3& pose );
+PoseSE3 MsgToPose( const geometry_msgs::Pose& msg );
 
 // Print an Euler angle in "Y: yaw P: pitch R: roll" format
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul );

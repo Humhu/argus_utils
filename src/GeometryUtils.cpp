@@ -58,6 +58,30 @@ tf::Transform PoseToTf( const PoseSE3& pose )
 	return tf::Transform( tfQuat, tfTrans );
 }
 
+geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
+{
+	geometry_msgs::Pose msg;
+	
+	PoseSE3::Translation trans = pose.GetTranslation();
+	msg.position.x = trans.x();
+	msg.position.y = trans.y();
+	msg.position.z = trans.z();
+	PoseSE3::Quaternion quat = pose.GetQuaternion();
+	msg.orientation.x = quat.x();
+	msg.orientation.y = quat.y();
+	msg.orientation.z = quat.z();
+	msg.orientation.w = quat.w();
+	
+	return msg;
+}
+
+PoseSE3 MsgToPose( const geometry_msgs::Pose& msg )
+{
+	PoseSE3::Translation trans( msg.position.x, msg.position.y, msg.position.z );
+	PoseSE3::Quaternion quat( msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z );
+	return PoseSE3( trans, quat );
+}
+
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul ) 
 {
 	os << "Y: " << eul.yaw << " P: " << eul.pitch << " R: " << eul.roll;

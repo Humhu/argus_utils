@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(catkin REQUIRED 
 	COMPONENTS		roscpp
 					tf
+					geometry_msgs
 )
 
 # Use Boost for utilities
@@ -28,6 +29,7 @@ catkin_package(
 					Eigen3
 					system_lib
 					tf
+					geometry_msgs
 )
 
 include_directories( include
