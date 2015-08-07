@@ -8,8 +8,9 @@ namespace argus_utils
 
 	class PoseSE2;
 
-	// TODO Use Eigen::Transform<double,3,Eigen::Isometry> as storage instead of
-	// Quaternion and Translation
+	/*! \brief Represents a 6D pose. Provides various methods to calculate
+	 * geometric properties, such as tangent velocities. 
+	 */
 	class PoseSE3 
 	{
 	friend class PoseSE2;
@@ -20,17 +21,10 @@ namespace argus_utils
 		static const int CovarianceDimension = 21;
 		
 		// Representation is [x, y, z, qw, qx, qy, qz]
-		typedef double ScalarType;
+		typedef double ScalarType; // TODO Templatize
 		typedef Eigen::Matrix<ScalarType, VectorDimension, 1> Vector;
 		typedef Eigen::Matrix<ScalarType, 3, 1> TranslationVector;
 		typedef Eigen::Matrix<ScalarType, 3, 1> AxisVector;
-
-		struct EulerAngles 
-		{
-			ScalarType yaw;
-			ScalarType pitch;
-			ScalarType roll;
-		};
 		
 		typedef Eigen::Transform<ScalarType, 3, Eigen::Isometry> Transform;
 		typedef Eigen::Matrix<ScalarType, 4, 4> Matrix;
@@ -45,25 +39,19 @@ namespace argus_utils
 		typedef Eigen::Matrix<ScalarType, TangentDimension, 1> TangentVector;
 		typedef Eigen::Matrix<ScalarType, TangentDimension, TangentDimension> AdjointMatrix;
 		
-		PoseSE3();
-		explicit PoseSE3( double x, double y, double z, double yaw,
-							double pitch, double roll );
-		explicit PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz );
-		explicit PoseSE3( const TranslationVector& t, double angle, const AxisVector& a );
-		explicit PoseSE3( const Vector& vec );
+		PoseSE3( double x = 0, double y = 0, double z = 0, 
+				 double qw = 1, double qx = 0, double qy = 0, double qz = 0 );
 		explicit PoseSE3( const Transform& trans );
 		explicit PoseSE3( const Matrix& mat );
-		explicit PoseSE3( Quaternion q, const Translation& t );
+		explicit PoseSE3( const Translation& t, const Quaternion& q );
 		explicit PoseSE3( const PoseSE2& se2 );
 
-		Matrix ToMatrix() const;
 		Transform ToTransform() const;
 		Vector ToVector() const; //[x,y,z,qw,qx,qy,qz]
 		PoseSE3 Inverse() const;
 
 		PoseSE3::Translation GetTranslation() const;
 		PoseSE3::Quaternion GetQuaternion() const;
-		PoseSE3::EulerAngles GetEulerAngles() const;
 
 		/*! \brief Integrates for unit time along the velocity direction starting
 			* from this PoseSE3. Returns a new PoseSE3. */
@@ -95,14 +83,7 @@ namespace argus_utils
 	PoseSE3 se3exp( const PoseSE3::TangentVector& velocity );
 	PoseSE3::TangentVector se3log( const PoseSE3& se3 );
 	
-	// TODO Think about what these even mean...
-	PoseSE3 operator+( const PoseSE3& se3, PoseSE3::Vector& vec );
-	PoseSE3 operator+( PoseSE3::Vector& vec, const PoseSE3& se3 );
-	PoseSE3 operator-( const PoseSE3& se3, PoseSE3::Vector& vec );
-	PoseSE3 operator-( PoseSE3::Vector& vec, const PoseSE3& se3 );
-
 	std::ostream& operator<<( std::ostream& os, const PoseSE3& se3 );
-	std::ostream& operator<<( std::ostream& os, const PoseSE3::EulerAngles& eul );
 	
 	// TODO Implement!
 	PoseSE3::CovarianceVector unroll_covariance( const PoseSE3::CovarianceMatrix& cov );

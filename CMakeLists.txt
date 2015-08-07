@@ -8,6 +8,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED 
 	COMPONENTS		roscpp
+					tf
 )
 
 # Use Boost for utilities
@@ -23,8 +24,10 @@ catkin_package(
 					
 	CATKIN_DEPENDS 	roscpp
 					
-	DEPENDS 		Boost 
+	DEPENDS 		Boost
+					Eigen3
 					system_lib
+					tf
 )
 
 include_directories( include
@@ -34,6 +37,7 @@ include_directories( include
 )
 
 add_library( argus_utils
+	src/GeometryUtils.cpp
 	src/PoseSE2.cpp
 	src/PoseSE3.cpp
 	src/YamlUtils.cpp
@@ -45,6 +49,8 @@ target_link_libraries( argus_utils
 	yaml-cpp
 )
 
+add_executable( yaml_test tests/YamlTest.cpp )
+target_link_libraries( yaml_test argus_utils )
 
 ## Mark executables and/or libraries for installation
 install(TARGETS argus_utils 
