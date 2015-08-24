@@ -49,6 +49,14 @@ Eigen::Quaterniond EulerToQuaternion( const EulerAngles& eul )
 							   * Eigen::AngleAxisd(eul.roll, Eigen::Vector3d::UnitX()) );
 }
 
+PoseSE3 TfToPose( const tf::Transform& trans )
+{
+	tf::Vector3 translation = trans.getOrigin();
+	tf::Quaternion quat = trans.getRotation();
+	return PoseSE3( translation.getX(), translation.getY(), translation.getZ(),
+									   quat.w(), quat.x(), quat.y(), quat.z() );
+}
+
 tf::Transform PoseToTf( const PoseSE3& pose )
 {
 	PoseSE3::Quaternion quat = pose.GetQuaternion();

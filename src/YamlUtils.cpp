@@ -12,6 +12,18 @@ std::string ReplaceAll( std::string input, const std::string query, const std::s
 	}
 	return input;
 }
+
+bool CheckXmlType( const XmlRpc::XmlRpcValue& xml, XmlRpc::XmlRpcValue::Type type )
+{
+	if( xml.getType() == XmlRpc::XmlRpcValue::TypeArray )
+	{
+		for( unsigned int i = 0; i < xml.size(); i++ )
+		{
+			if( xml[i].getType() != type ) { return false; }
+		}
+	}
+	return true;
+}
 	
 YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 {
@@ -30,41 +42,45 @@ YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 		}
 		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeArray )
 		{
-			if( payload[0].getType() == XmlRpc::XmlRpcValue::TypeBoolean )
+			if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeBoolean ) )
 			{
 				std::vector<bool> s;
 				for( int i = 0; i < payload.size(); i++ )
 				{
-					s.push_back( static_cast<bool>(payload[i]) );
+					s.push_back( static_cast<bool>( payload[i]) );
 				}
-				yaml[name] = s;			
+				yaml[name] = s;
 			}
-			else if( payload[0].getType() == XmlRpc::XmlRpcValue::TypeInt )
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeInt ) )
 			{
 				std::vector<int> s;
 				for( int i = 0; i < payload.size(); i++ )
 				{
-					s.push_back( static_cast<int>(payload[i]) );
+					s.push_back( static_cast<int>( payload[i]) );
 				}
-				yaml[name] = s;			
+				yaml[name] = s;
 			}
-			else if( payload[0].getType() == XmlRpc::XmlRpcValue::TypeDouble )
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeDouble ) )
 			{
 				std::vector<double> s;
 				for( int i = 0; i < payload.size(); i++ )
 				{
-					s.push_back( static_cast<double>(payload[i]) );
+					s.push_back( static_cast<double>( payload[i]) );
 				}
-				yaml[name] = s;			
+				yaml[name] = s;
 			}
-			else if( payload[0].getType() == XmlRpc::XmlRpcValue::TypeString )
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeString ) )
 			{
 				std::vector<std::string> s;
 				for( int i = 0; i < payload.size(); i++ )
 				{
-					s.push_back( static_cast<std::string>(payload[i]) );
+					s.push_back( static_cast<std::string>( payload[i]) );
 				}
-				yaml[name] = s;			
+				yaml[name] = s;
+			}
+			else
+			{
+				std::cerr << "Invalid array type." << std::endl;
 			}
 		}
 		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeBoolean )

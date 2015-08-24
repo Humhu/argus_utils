@@ -6,6 +6,9 @@
 
 namespace argus_utils 
 {
+
+PoseSE3::PoseSE3()
+: PoseSE3( 0, 0, 0, 1, 0, 0, 0 ) {}
 	
 PoseSE3::PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz )
 {
