@@ -12,13 +12,26 @@ int main( int argc, char** argv )
 	ros::NodeHandle nh;
 	ros::NodeHandle ph( "~" );
 	
-	nh.setParam( "a/b/c", 5 );
-	nh.setParam( "a/b/z", "hello" );
+	std::vector<bool> boolArray = {false, true, false};
+	std::vector<double> doubleArray = {5, 4, 3.14};
+	std::vector<int> intArray = {-1, 0, 2};
+	std::vector< std::string > stringArray = { "hello", "world" };
+	
+	nh.setParam( "test/arrays/bools", boolArray );
+	nh.setParam( "test/arrays/doubles", doubleArray );
+	nh.setParam( "test/arrays/ints", intArray );
+	nh.setParam( "test/arrays/strings", stringArray );
+	
+	nh.setParam( "test/singles/bool", true );
+	nh.setParam( "test/singles/double", 2.714 );
+	nh.setParam( "test/singles/ints", -254 );
+	nh.setParam( "test/singles/string", "string" );
 	
 	XmlRpc::XmlRpcValue xml;
-	nh.getParam( "a", xml );
+	nh.getParam( "test", xml );
 	std::cout << "Got xml from param server: " << std::endl;
 	xml.write( std::cout );
+	std::cout << std::endl;
 	
 	YAML::Node yaml = XmlToYaml( xml );
 	std::cout << "Converted to yaml: " << std::endl;

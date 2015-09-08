@@ -2,6 +2,29 @@
 
 namespace argus_utils
 {
+
+std::string ReplaceAll( std::string input, const std::string query, const std::string rep )
+{
+	size_t loc;
+	while( (loc = input.find( query )) != std::string::npos )
+	{
+		input.replace( loc, rep.size(), rep );
+	}
+	return input;
+}
+
+bool CheckXmlType( const XmlRpc::XmlRpcValue& xml, XmlRpc::XmlRpcValue::Type type )
+{
+	if( xml.getType() == XmlRpc::XmlRpcValue::TypeArray )
+	{
+		for( unsigned int i = 0; i < xml.size(); i++ )
+		{
+			if( xml[i].getType() != type ) { return false; }
+		}
+	}
+	return true;
+}
+	
 YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 {
 	YAML::Node yaml;
@@ -17,11 +40,69 @@ YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 		{
 			yaml[name] = XmlToYaml( payload );
 		}
+		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeArray )
+		{
+			if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeBoolean ) )
+			{
+				std::vector<bool> s;
+				for( int i = 0; i < payload.size(); i++ )
+				{
+					s.push_back( static_cast<bool>( payload[i]) );
+				}
+				yaml[name] = s;
+			}
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeInt ) )
+			{
+				std::vector<int> s;
+				for( int i = 0; i < payload.size(); i++ )
+				{
+					s.push_back( static_cast<int>( payload[i]) );
+				}
+				yaml[name] = s;
+			}
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeDouble ) )
+			{
+				std::vector<double> s;
+				for( int i = 0; i < payload.size(); i++ )
+				{
+					s.push_back( static_cast<double>( payload[i]) );
+				}
+				yaml[name] = s;
+			}
+			else if( CheckXmlType( payload, XmlRpc::XmlRpcValue::TypeString ) )
+			{
+				std::vector<std::string> s;
+				for( int i = 0; i < payload.size(); i++ )
+				{
+					s.push_back( static_cast<std::string>( payload[i]) );
+				}
+				yaml[name] = s;
+			}
+			else
+			{
+				std::cerr << "Invalid array type." << std::endl;
+			}
+		}
+		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeBoolean )
+		{
+			yaml[name] = static_cast<bool>( payload );;
+		}
+		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeInt )
+		{
+			yaml[name] = static_cast<int>( payload );
+		}
+		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeDouble )
+		{
+			yaml[name] = static_cast<double>( payload );
+		}
+		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeString )
+		{
+			yaml[name] = static_cast<std::string>( payload );
+		}
 		else
 		{
-			std::stringstream ss;
-			payload.write( ss );
-			yaml[name] = ss.str();
+			std::cerr << "Unsupported conversion type." << std::endl;
+			continue;
 		}
 	}
 	return yaml;
@@ -31,18 +112,35 @@ XmlRpc::XmlRpcValue YamlToXml( const YAML::Node& node )
 {
 	XmlRpc::XmlRpcValue xml;
 	
-	if( node.IsNull() ) { return xml; }
-	if( !node.IsMap() )
-	{
-		xml = node.as<std::string>();
-		return xml;
+	if( node.IsNull() ) 
+	{ 
+		return xml; 
 	}
-	
-	YAML::Node::const_iterator iter;
-	for( iter = node.begin(); iter != node.end(); iter++ )
+	else if( node.IsSequence() )
 	{
-		std::string name = iter->first.as<std::string>();
-		xml[ name ] = YamlToXml( iter->second );
+		std::vector< std::string > contents = node.as< std::vector< std::string > >();
+		xml.setSize( contents.size() );
+		for( unsigned int i = 0; i < contents.size(); i++ )
+		{
+			xml[i] = contents[i];
+		}
+	}
+	else if( node.IsScalar() )
+	{
+		xml = node.as< std::string >();
+	}
+	else if( node.IsMap() )
+	{
+		YAML::Node::const_iterator iter;
+		for( iter = node.begin(); iter != node.end(); iter++ )
+		{
+			std::string name = iter->first.as<std::string>();
+			xml[ name ] = YamlToXml( iter->second );
+		}
+	}
+	else
+	{
+		std::cerr << "Invalid YAML node type." << std::endl;
 	}
 	return xml;
 }

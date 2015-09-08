@@ -39,8 +39,8 @@ namespace argus_utils
 		typedef Eigen::Matrix<ScalarType, TangentDimension, 1> TangentVector;
 		typedef Eigen::Matrix<ScalarType, TangentDimension, TangentDimension> AdjointMatrix;
 		
-		PoseSE3( double x = 0, double y = 0, double z = 0, 
-				 double qw = 1, double qx = 0, double qy = 0, double qz = 0 );
+		PoseSE3();
+		PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz );
 		explicit PoseSE3( const Transform& trans );
 		explicit PoseSE3( const Matrix& mat );
 		explicit PoseSE3( const Translation& t, const Quaternion& q );
