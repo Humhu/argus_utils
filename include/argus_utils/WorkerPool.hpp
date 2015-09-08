@@ -72,10 +72,11 @@ namespace argus_utils {
 		
 		void WorkerLoop()
 		{
-			while( true ) {
-
-				try {
-					
+			try {
+				while( true ) 
+				{
+					boost::this_thread::interruption_point();
+		
 					Lock lock( mutex );
 					while( jobQueue.empty() )
 					{
@@ -92,11 +93,9 @@ namespace argus_utils {
 					lock.unlock();
 					
 					job();
-
-				} catch( boost::thread_interrupted e ) {
-					return;
 				}
 			}
+			catch( boost::thread_interrupted e ) { return; }
 		}
 
 	};
