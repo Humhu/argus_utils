@@ -44,7 +44,6 @@ add_library( argus_utils
 	src/PoseSE3.cpp
 	src/YamlUtils.cpp
 )
-# add_dependencies( argus_utils ${argus_utils_EXPORTED_TARGETS} )
 target_link_libraries( argus_utils
 	${Boost_LIBRARIES}
 	${catkin_LIBRARIES}
@@ -54,8 +53,11 @@ target_link_libraries( argus_utils
 add_executable( yaml_test tests/YamlTest.cpp )
 target_link_libraries( yaml_test argus_utils )
 
+add_executable( filter_test tests/FilterTest.cpp )
+target_link_libraries( filter_test argus_utils )
+
 ## Mark executables and/or libraries for installation
-install(TARGETS argus_utils 
+install(TARGETS argus_utils yaml_test filter_test
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

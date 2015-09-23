@@ -1,4 +1,5 @@
 #include "argus_utils/YamlUtils.h"
+#include "argus_utils/MatrixUtils.h"
 
 namespace argus_utils
 {
@@ -155,12 +156,22 @@ YAML::Node SetPoseYaml( const PoseSE3& pose )
 
 bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
 {
-	if( !node["quaternion"] || !node["position"] )
+	if( (!node["quaternion"] && !node["euler"]) || !node["position"] )
 	{
 		throw std::runtime_error( "Missing quaternion/position field from pose." );
 	}
-	Eigen::Quaterniond quat; 
-	if( !GetQuaternionYaml( node["quaternion"], quat ) ) { return false; }
+	Eigen::Quaterniond quat;
+	if( node["quaternion"] )
+	{
+		if( !GetQuaternionYaml( node["quaternion"], quat ) ) { return false; }
+	}
+	else if( node["euler"] )
+	{
+		EulerAngles eul;
+		if( !GetEulerYaml( node["euler"], eul ) ) { return false; }
+		quat = EulerToQuaternion( eul );
+	}
+	
 	Eigen::Translation3d pos; 
 	if( !GetPositionYaml( node["position"], pos ) ) { return false; }
 	pose = PoseSE3( pos, quat );
@@ -177,6 +188,35 @@ YAML::Node SetQuaternionYaml( const Eigen::Quaterniond& quat )
 	YAML::Node node;
 	node = vals;
 	return node;
+}
+
+bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul )
+{
+	if( !node.IsSequence() )
+	{
+		throw std::runtime_error( "Null node in GetEuler!" );
+	}
+	
+	std::vector<double> vals;
+	try
+	{
+		vals = node.as< std::vector<double> >();
+	}
+	catch( std::exception e )
+	{
+		std::stringstream ss;
+		ss << "Error parsing Euler string: " << node;
+		throw std::runtime_error( ss.str() );
+	}
+	
+	if( vals.size() != 3 )
+	{
+		throw std::runtime_error( "Incorrect number of elements for Euler." );
+	}
+	eul.yaw = vals[0];
+	eul.pitch = vals[1];
+	eul.roll = vals[2];
+	return true;
 }
 
 bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
@@ -264,11 +304,8 @@ bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat,
 	}
 	
 	mat = Eigen::MatrixXd( dimensions[0], dimensions[1] );
-	for( unsigned int i = 0; i < dimensions[0]*dimensions[1]; i++ )
-	{
-		mat(i) = vals[i];
-	}
-	return false;
+	return ParseMatrix( vals, mat );
+
 }
 	
 } // end namespace argus_utils

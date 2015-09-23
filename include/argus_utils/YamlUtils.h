@@ -6,6 +6,7 @@
 #include <Eigen/Geometry>
 
 #include "argus_utils/PoseSE3.h"
+#include "argus_utils/GeometryUtils.h"
 
 namespace argus_utils
 {
@@ -22,6 +23,8 @@ bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose );
 /*! \brief Read/Write a Quaternion object to the node */
 YAML::Node SetQuaternionYaml( const Eigen::Quaterniond& quat );
 bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat );
+
+bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul );
 
 /*! \brief Read/Write a Position object to the node */
 YAML::Node SetPositionYaml( const Eigen::Translation3d& trans );

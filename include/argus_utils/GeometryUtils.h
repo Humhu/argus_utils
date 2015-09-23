@@ -1,19 +1,17 @@
 #pragma once
 
 #include <geometry_msgs/Pose.h>
-
 #include <tf/LinearMath/Transform.h> // From tf
 
-#include <Eigen/Geometry>
-
-#include <iostream>
-
 #include "argus_utils/PoseSE3.h"
+
+#include <Eigen/Geometry>
+#include <iostream>
 
 namespace argus_utils
 {
 	
-// TODO Templatize?
+// TODO Templatize scalar type
 struct EulerAngles
 {
 	double yaw;
