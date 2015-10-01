@@ -90,6 +90,30 @@ PoseSE3 MsgToPose( const geometry_msgs::Pose& msg )
 	return PoseSE3( trans, quat );
 }
 
+geometry_msgs::Twist TangentToMsg( const PoseSE3::TangentVector& tan )
+{
+	geometry_msgs::Twist twist;
+	twist.linear.x = tan(0);
+	twist.linear.y = tan(1);
+	twist.linear.z = tan(2);
+	twist.angular.x = tan(3);
+	twist.angular.y = tan(4);
+	twist.angular.z = tan(5);
+	return twist;
+}
+
+PoseSE3::TangentVector MsgToTangent( const geometry_msgs::Twist& twist )
+{
+	PoseSE3::TangentVector tan;
+	tan(0) = twist.linear.x;
+	tan(1) = twist.linear.y;
+	tan(2) = twist.linear.z;
+	tan(3) = twist.angular.x;
+	tan(4) = twist.angular.y;
+	tan(5) = twist.angular.z;
+	return tan;
+}
+
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul ) 
 {
 	os << "Y: " << eul.yaw << " P: " << eul.pitch << " R: " << eul.roll;

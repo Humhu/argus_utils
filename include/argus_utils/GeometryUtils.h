@@ -1,6 +1,8 @@
 #pragma once
 
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Twist.h>
+
 #include <tf/LinearMath/Transform.h> // From tf
 
 #include "argus_utils/PoseSE3.h"
@@ -32,6 +34,10 @@ PoseSE3 TfToPose( const tf::Transform& tf );
 // Convert between geometry_msgs::Pose message and PoseSE3 objects
 geometry_msgs::Pose PoseToMsg( const PoseSE3& pose );
 PoseSE3 MsgToPose( const geometry_msgs::Pose& msg );
+
+// Convert between geometry_msgs::Twist message and PoseSE3::TangentVector
+geometry_msgs::Twist TangentToMsg( const PoseSE3::TangentVector& tan );
+PoseSE3::TangentVector MsgToTangent( const geometry_msgs::Twist& twist );
 
 // Print an Euler angle in "Y: yaw P: pitch R: roll" format
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul );
