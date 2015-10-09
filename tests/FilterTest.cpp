@@ -7,13 +7,17 @@ using namespace argus_utils;
 int main( int argc, char** argv )
 {
 	
-	typedef KalmanFilter<3> KF;
+	// Fixed dim 3 state, dynamic control and obs dims
+	typedef KalmanFilter<double, 3, 3, 3> KF;
 	
 	KF kf;
-	kf.TransitionMatrix() = KF::StateTransition::Identity();
-	kf.TransitionCovariance() = KF::StateCovariance::Identity();
-	kf.ObservationMatrix() = KF::MeasurementMatrix::Identity(3,3);
-	kf.ObservationCovariance() = KF::MeasurementCovariance::Identity(3,3);
+	kf.TransMatrix() = KF::StateTransition::Identity();
+	kf.TransCovariance() = KF::StateCovariance::Identity();
+	
+	kf.ControlMatrix() = -KF::ControlTransition::Identity();
+	
+	kf.ObsMatrix() = KF::ObservationMatrix::Identity();
+	kf.ObsCovariance() = KF::ObservationCovariance::Identity();
 	kf.EstimateMean() = KF::StateVector::Zero();
 	kf.EstimateCovariance() = KF::StateCovariance::Identity();
 	
@@ -21,12 +25,14 @@ int main( int argc, char** argv )
 	std::cout << kf.EstimateCovariance() << std::endl;
 	
 	std::cout << "Predicting..." << std::endl;
-	kf.Predict();
+	KF::ControlVector u;
+	u << 0, -1, 1;
+	kf.Predict( u );
 	std::cout << "KF is at mean: " << kf.EstimateMean().transpose() << " with covariance: " << std::endl;
 	std::cout << kf.EstimateCovariance() << std::endl;
 
 	std::cout << "Updating..." << std::endl;	
-	KF::MeasurementVector z = KF::MeasurementVector::Zero(3);
+	KF::ObservationVector z = KF::ObservationVector::Zero();
 	z(2) = 1;
 	kf.Update( z );
 	std::cout << "KF is at mean: " << kf.EstimateMean().transpose() << " with covariance: " << std::endl;
