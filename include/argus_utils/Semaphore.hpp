@@ -1,57 +1,55 @@
-#ifndef _SEMAPHORE_H_
-#define _SEMAPHORE_H_
+#pragma once
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
 
 namespace argus_utils {
 
-	/*! \brief A standard semaphore class. */
-	class Semaphore {
-	public:
+/*! \brief A standard semaphore class. */
+class Semaphore {
+public:
 
-		Semaphore( int startCounter )
-			: counter( startCounter )
-		{}
+	Semaphore( int startCounter = 0 )
+		: counter( startCounter )
+	{}
+	
+	void Increment( int i = 1 )
+	{
+		boost::unique_lock<Mutex> lock( mutex );
+		counter += i;
+		hasCounters.notify_all(); // TODO all or one?
+	}
+	
+	void Decrement( int i = 1 )
+	{
+		boost::unique_lock<Mutex> lock( mutex );
 		
-		void Increment( int i = 1 )
+		while( counter < i )
 		{
-			boost::unique_lock<Mutex> lock( mutex );
-			counter += i;
-			hasCounters.notify_all(); // TODO all or one?
+			hasCounters.wait( lock );
 		}
-		
-		void Decrement( int i = 1 )
-		{
-			boost::unique_lock<Mutex> lock( mutex );
-			
-			while( counter < i )
-			{
-				hasCounters.wait( lock );
-			}
-			counter = counter - i;
-		}
+		counter = counter - i;
+	}
 
-		// TODO IncrementWait and DecrementWait
-		
-		/*! \brief Returns how many counters are available. */
-		int Query() const
-		{
-			boost::shared_lock<Mutex> lock( mutex );
-			return counter;
-		}
-		
-	protected:
+	// TODO IncrementWait and DecrementWait
+	
+	/*! \brief Returns how many counters are available. */
+	int Query() const
+	{
+		boost::shared_lock<Mutex> lock( mutex );
+		return counter;
+	}
+	
+protected:
 
-		typedef boost::shared_mutex Mutex;
-		typedef boost::condition_variable_any Condition;
-		
-		mutable Mutex mutex;
-		int counter;
-		Condition hasCounters;
-		
-	};
+	typedef boost::shared_mutex Mutex;
+	typedef boost::condition_variable_any Condition;
+	
+	mutable Mutex mutex;
+	int counter;
+	Condition hasCounters;
+	
+};
 
 }
 
-#endif
