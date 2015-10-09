@@ -9,8 +9,7 @@ namespace argus_utils
 	class PoseSE2;
 
 	/*! \brief Represents a 6D pose. Provides various methods to calculate
-	 * geometric properties, such as tangent velocities. 
-	 */
+	 * geometric properties, such as tangent velocities. */
 	class PoseSE3 
 	{
 	friend class PoseSE2;
@@ -53,13 +52,8 @@ namespace argus_utils
 		PoseSE3::Translation GetTranslation() const;
 		PoseSE3::Quaternion GetQuaternion() const;
 
-		/*! \brief Integrates for unit time along the velocity direction starting
-			* from this PoseSE3. Returns a new PoseSE3. */
-		PoseSE3 Exp( const TangentVector& other ) const;
-
-		/*! \brief Returns a velocity that starting from this PoseSE3 reaches
-			* other in unit time. */
-		PoseSE3::TangentVector Log( const PoseSE3& other ) const;
+		static PoseSE3 Exp( const TangentVector& other );
+		static PoseSE3::TangentVector Log( const PoseSE3& other );
 
 		/*! \brief Returns the adjoint matrix that maps velocities around the identity
 			* to around this PoseSE3. */
@@ -80,9 +74,6 @@ namespace argus_utils
 
 	};
 
-	PoseSE3 se3exp( const PoseSE3::TangentVector& velocity );
-	PoseSE3::TangentVector se3log( const PoseSE3& se3 );
-	
 	std::ostream& operator<<( std::ostream& os, const PoseSE3& se3 );
 	
 	// TODO Implement!

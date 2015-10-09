@@ -4,10 +4,6 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
-#define PSE2_EXPONENT_DIM (3)
-#define PSE2_TANGENT_DIM (3)
-#define PSE2_COVARIANCE_DOF (6)
-
 // TODO: Templatize to choose between float and double
 namespace argus_utils 
 {
@@ -19,21 +15,25 @@ namespace argus_utils
 	friend class PoseSE3;
 	public:
 
+		static const int VectorDimension = 3;
+		static const int TangentDimension = 3;
+		static const int CovarianceDimension = 6;
+		
 		typedef double ScalarType;
-		typedef Eigen::Vector3d Vector;
-		typedef Eigen::Transform<double, 2, Eigen::Isometry> Transform;
-		typedef Eigen::Matrix<double, PSE2_EXPONENT_DIM, PSE2_EXPONENT_DIM> Matrix;
-		typedef Eigen::Rotation2D<double> Rotation;
-		typedef Eigen::Translation<double, 2> Translation;
+		typedef Eigen::Matrix<ScalarType, VectorDimension, 1> Vector;
+		typedef Eigen::Transform<ScalarType, 2, Eigen::Isometry> Transform;
+		typedef Eigen::Matrix<ScalarType, TangentDimension, TangentDimension> Matrix;
+		typedef Eigen::Rotation2D<ScalarType> Rotation;
+		typedef Eigen::Translation<ScalarType, 2> Translation;
 		typedef Translation::VectorType TranslationVector;
 
 		// Probability definitions
-		typedef Eigen::Matrix<double, PSE2_TANGENT_DIM, PSE2_TANGENT_DIM> CovarianceMatrix;
-		typedef Eigen::Matrix<double, PSE2_COVARIANCE_DOF, 1> CovarianceVector;
+		typedef Eigen::Matrix<ScalarType, TangentDimension, TangentDimension> CovarianceMatrix;
+		typedef Eigen::Matrix<ScalarType, CovarianceDimension, 1> CovarianceVector;
 		
 		// Lie group definitions
-		typedef Eigen::Matrix<double, PSE2_TANGENT_DIM, 1> TangentVector;
-		typedef Eigen::Matrix<double, PSE2_TANGENT_DIM, PSE2_TANGENT_DIM> AdjointMatrix;
+		typedef Eigen::Matrix<ScalarType, TangentDimension, 1> TangentVector;
+		typedef Eigen::Matrix<ScalarType, TangentDimension, TangentDimension> AdjointMatrix;
 		
 		PoseSE2();
 		explicit PoseSE2( double x, double y, double theta );
@@ -51,8 +51,9 @@ namespace argus_utils
 		PoseSE2::Translation GetTranslation() const;
 		PoseSE2::Rotation GetRotation() const;
 		
-		PoseSE2::TangentVector Log( const PoseSE2& other ) const;
-		PoseSE2 Exp( const PoseSE2::TangentVector& other ) const;
+		static PoseSE2::TangentVector Log( const PoseSE2& pose );
+		static PoseSE2 Exp( const PoseSE2::TangentVector& tangent );
+		
 		PoseSE2::AdjointMatrix GetAdjoint() const;
 		PoseSE2::TangentVector Adjoint( const TangentVector& other ) const;
 		

@@ -76,23 +76,14 @@ PoseSE3::Transform PoseSE3::ToTransform() const
 
 PoseSE3 PoseSE3::Inverse() const 
 {
-//             Translation tInv( quat.inverse()*(-trans.translation()) );
-//             Quaternion rInv = quat.inverse();
-
 	PoseSE3 ret( tform.inverse() );
 	return ret;
 }
 
-PoseSE3 PoseSE3::Exp( const PoseSE3::TangentVector& other ) const 
+PoseSE3 PoseSE3::Exp( const PoseSE3::TangentVector& tangent ) 
 {
-	PoseSE3 delta = se3exp( other );
-	return delta*(*this);
-}
-
-PoseSE3 se3exp( const PoseSE3::TangentVector& other ) 
-{
-	PoseSE3::TranslationVector u = other.block<3,1>(0,0);
-	PoseSE3::AxisVector w = other.block<3,1>(3,0);
+	PoseSE3::TranslationVector u = tangent.block<3,1>(0,0);
+	PoseSE3::AxisVector w = tangent.block<3,1>(3,0);
 	
 	double theta = w.norm();
 	SECoefficients coeffs( theta );
@@ -108,17 +99,9 @@ PoseSE3 se3exp( const PoseSE3::TangentVector& other )
 	return ret;
 }
 
-// TODO Remove! This is convention-dependant
-// Adapted from code by Ethan Eade
-PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& other ) const 
+PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& pose ) 
 {
-	PoseSE3 diff = other/(*this);
-	return se3log( diff );
-}
-
-PoseSE3::TangentVector se3log( const PoseSE3& diff ) 
-{
-	PoseSE3::Transform::LinearMatrixType R = diff.ToTransform().rotation();
+	PoseSE3::Transform::LinearMatrixType R = pose.ToTransform().rotation();
 	
 	PoseSE3::AxisVector w;
 	w << 0.5 * (R(2,1) - R(1,2)),
@@ -129,7 +112,8 @@ PoseSE3::TangentVector se3log( const PoseSE3& diff )
 	double st = w.norm();
 	double st2 = st*st;
 	
-	if (ct > 0.999856) 
+	// From code by Ethan Eade (?)
+	if (ct > 0.999856) // TODO Make #def
 	{
 		// Small angles
 		// Taylor expansion of f(x) = arcsin(x) / x
@@ -181,7 +165,7 @@ PoseSE3::TangentVector se3log( const PoseSE3& diff )
 	
 	PoseSE3::Quaternion::Matrix3 wx = cross_product_matrix( w );
 	PoseSE3::Quaternion::Matrix3 V = PoseSE3::Quaternion::Matrix3::Identity() + coeffs.b*wx + coeffs.c*wx*wx;
-	PoseSE3::TranslationVector t = diff.GetTranslation().vector();
+	PoseSE3::TranslationVector t = pose.GetTranslation().vector();
 	PoseSE3::TranslationVector u = V.partialPivLu().solve(t);
 	
 	PoseSE3::TangentVector v;
@@ -247,6 +231,7 @@ Eigen::Matrix<C,3,3> cross_product_matrix( const Eigen::Matrix<C,3,1>& v )
 	return s;
 }
 
+// From code by Ethan Eade
 SECoefficients::SECoefficients( double theta ) 
 {
 	double tt = theta*theta;

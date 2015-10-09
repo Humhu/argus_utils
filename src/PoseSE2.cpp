@@ -46,12 +46,11 @@ namespace argus_utils
 		}
 	}
 
-	PoseSE2::TangentVector PoseSE2::Log( const PoseSE2& other ) const 
+	PoseSE2::TangentVector PoseSE2::Log( const PoseSE2& pose ) 
 	{
-		PoseSE2 diff = other/(*this);
-		TranslationVector t = diff.ToMatrix().block<2,1>(0,2);
+		TranslationVector t = pose.ToMatrix().block<2,1>(0,2);
 		
-		double theta = diff.GetRotation().angle();
+		double theta = pose.GetRotation().angle();
 		SECoefficients coeffs( theta );
 
 		double f;
@@ -71,17 +70,16 @@ namespace argus_utils
 		return v;
 	}
 
-	PoseSE2 PoseSE2::Exp( const PoseSE2::TangentVector& other ) const 
+	PoseSE2 PoseSE2::Exp( const PoseSE2::TangentVector& tangent ) 
 	{
-		double theta = other(2);
+		double theta = tangent(2);
 		SECoefficients coeffs( theta );
 		Rotation::Matrix2 V;
 		V << coeffs.a, -coeffs.b*theta,
 				coeffs.b*theta, coeffs.a;
-		TranslationVector t = V*other.block<2,1>(0,0);
+		TranslationVector t = V*tangent.block<2,1>(0,0);
 
-		PoseSE2 delta( t(0), t(1), other(2) );
-		return delta*(*this);
+		return PoseSE2( t(0), t(1), tangent(2) );
 			
 	}
 
