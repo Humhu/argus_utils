@@ -4,21 +4,21 @@
 namespace argus_utils
 {
 
-std::string ReplaceAll( std::string input, const std::string query, const std::string rep )
+// Needed because int strings like '0' do not convert to doubles automatically
+double ParseDouble( XmlRpc::XmlRpcValue& xml )
 {
-	size_t loc;
-	while( (loc = input.find( query )) != std::string::npos )
+	if( xml.getType() == XmlRpc::XmlRpcValue::TypeInt )
 	{
-		input.replace( loc, rep.size(), rep );
+		return (double) static_cast<int>( xml );
 	}
-	return input;
+	return static_cast<double>( xml );
 }
 
 bool CheckXmlType( const XmlRpc::XmlRpcValue& xml, XmlRpc::XmlRpcValue::Type type )
 {
 	if( xml.getType() == XmlRpc::XmlRpcValue::TypeArray )
 	{
-		for( unsigned int i = 0; i < xml.size(); i++ )
+		for( int i = 0; i < xml.size(); i++ )
 		{
 			// Ints can be cast to doubles, so a differing payload type here
 			// should not cause the call to return false
@@ -70,7 +70,8 @@ YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 				std::vector<double> s;
 				for( int i = 0; i < payload.size(); i++ )
 				{
-					s.push_back( static_cast<double>( payload[i]) );
+					
+					s.push_back( ParseDouble( payload[i] ) );
 				}
 				yaml[name] = s;
 			}
@@ -90,7 +91,7 @@ YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 		}
 		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeBoolean )
 		{
-			yaml[name] = static_cast<bool>( payload );;
+			yaml[name] = static_cast<bool>( payload );
 		}
 		else if( payload.getType() == XmlRpc::XmlRpcValue::TypeInt )
 		{
@@ -161,27 +162,23 @@ bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node
 YAML::Node SetPoseYaml( const PoseSE3& pose )
 {
 	YAML::Node node;
-	node["quaternion"] = SetQuaternionYaml( pose.GetQuaternion() );
+	node["orientation"] = SetOrientationYaml( pose.GetQuaternion() );
 	node["position"] = SetPositionYaml( pose.GetTranslation() );
 	return node;
 }
 
 bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
 {
-	if( (!node["quaternion"] && !node["euler"]) || !node["position"] )
+	if( !node["orientation"] || !node["position"] )
 	{
-		std::cerr << "Missing quaternion/position field from pose." << std::endl;
 		return false;
 	}
+	
 	Eigen::Quaterniond quat;
-	if( node["quaternion"] )
-	{
-		if( !GetQuaternionYaml( node["quaternion"], quat ) ) { return false; }
-	}
-	else if( node["euler"] )
+	if( !GetOrientationYaml( node["orientation"], quat ) )
 	{
 		EulerAngles eul;
-		if( !GetEulerYaml( node["euler"], eul ) ) { return false; }
+		if( !GetOrientationYaml( node["orientation"], eul ) ) { return false; }
 		quat = EulerToQuaternion( eul );
 	}
 	
@@ -191,98 +188,64 @@ bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
 	return true;
 }
 
-YAML::Node SetQuaternionYaml( const Eigen::Quaterniond& quat )
-{
-	std::vector<double> vals(4);
-	vals[0] = quat.w();
-	vals[1] = quat.x();
-	vals[2] = quat.y();
-	vals[3] = quat.z();
+YAML::Node SetOrientationYaml( const Eigen::Quaterniond& quat )
+{	
 	YAML::Node node;
-	node = vals;
+	node["qw"] = quat.w();
+	node["qx"] = quat.x();
+	node["qy"] = quat.y();
+	node["qz"] = quat.z();
 	return node;
 }
 
-bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul )
+YAML::Node SetOrientationYaml( const EulerAngles& eul )
 {
-	if( !node.IsSequence() )
-	{
-		std::cerr << "Null node in GetEuler!" << std::endl;
-		return false;
-	}
+	YAML::Node node;
+	node["yaw"] = eul.yaw;
+	node["pitch"] = eul.pitch;
+	node["roll"] = eul.roll;
+	return node;
+}
+
+bool GetOrientationYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
+{
+	if( !node["qw"] || !node["qx"] || !node["qy"] || !node["qz"] ) { return false; }
 	
-	std::vector<double> vals;
-	try
-	{
-		vals = node.as< std::vector<double> >();
-	}
-	catch( std::exception e )
-	{
-		std::stringstream ss;
-		std::cerr << "Error parsing Euler string: " << node << std::endl;
-		return false;
-	}
-	
-	if( vals.size() != 3 )
-	{
-		std::cerr << "Incorrect number of elements for Euler." << std::endl;
-		return false;
-	}
-	eul.yaw = vals[0];
-	eul.pitch = vals[1];
-	eul.roll = vals[2];
+	double qw = node["qw"].as<double>();
+	double qx = node["qx"].as<double>();
+	double qy = node["qy"].as<double>();
+	double qz = node["qz"].as<double>();
+	quat = Eigen::Quaterniond( qw, qx, qy, qz );
 	return true;
 }
 
-bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
+bool GetOrientationYaml( const YAML::Node& node, EulerAngles& eul )
 {
-	if( !node.IsSequence() )
-	{
-		std::cerr << "Null node in GetQuaternion!" << std::endl;
-		return false;
-	}
+	if( !node["yaw"] || !node["pitch"] || !node["roll"] ) { return false; }
 	
-	std::vector<double> vals;
-	try
-	{
-		vals = node.as< std::vector<double> >();
-	}
-	catch( std::exception e )
-	{
-		std::cerr << "Error parsing quaternion string: " << node << std::endl;
-		return false;
-	}
-	
-	if( vals.size() != 4 )
-	{
-		std::cerr << "Incorrect number of elements for quaternion." << std::endl;
-		return false;
-	}
-	quat = Eigen::Quaterniond( vals[0], vals[1], vals[2], vals[3] );
+	eul.yaw = node["yaw"].as<double>();
+	eul.pitch = node["pitch"].as<double>();
+	eul.roll = node["roll"].as<double>();
 	return true;
 }
 
 YAML::Node SetPositionYaml( const Eigen::Translation3d& trans )
 {
-	std::vector<double> vals(3);
-	vals[0] = trans.x();
-	vals[1] = trans.y();
-	vals[2] = trans.z();
 	YAML::Node node;
-	node = vals;
+	node["x"] = trans.x();
+	node["y"] = trans.y();
+	node["z"] = trans.z();
 	return node;
 }
 
 bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans )
 {
-	std::vector<double> vals = node.as< std::vector<double> >();
-	if( vals.size() != 3 )
-	{
-		std::cerr << "Incorrect number of elements for position." << std::endl;
-		return false;
-	}
-	Eigen::Vector3d vec( vals[0], vals[1], vals[2] );
-	trans = Eigen::Translation3d( vec );
+	if( !node["x"] || !node["y"] || !node["z"] ) { return false; }
+	
+	double x = node["x"].as<double>();
+	double y = node["y"].as<double>();
+	double z = node["z"].as<double>();
+	trans = Eigen::Translation3d( x, y, z );
 	return true;
 }
 
@@ -323,7 +286,7 @@ bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat,
 	}
 	
 	mat = Eigen::MatrixXd( dimensions[0], dimensions[1] );
-	return ParseMatrix( vals, mat );
+	return ParseMatrix( vals, mat, RowMajor );
 
 }
 	

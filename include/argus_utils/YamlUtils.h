@@ -28,16 +28,18 @@ bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose );
 /*! \brief Populate a pose message from a YAML block */
 // TODO geometry_msgs::Pose ParsePoseYaml( const YAML::Node& node );
 
-/*! \brief Read/Write a Quaternion object to the node */
-YAML::Node SetQuaternionYaml( const Eigen::Quaterniond& quat );
-bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat );
-
-bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul );
+// TODO Support float and double types
+/*! \brief Read/Write a quaternion or Euler object to the node */
+YAML::Node SetOrientationYaml( const Eigen::Quaterniond& quat );
+YAML::Node SetOrientationYaml( const EulerAngles& eul );
+bool GetOrientationYaml( const YAML::Node& node, Eigen::Quaterniond& quat );
+bool GetOrientationYaml( const YAML::Node& node, EulerAngles& eul );
 
 /*! \brief Read/Write a Position object to the node */
 YAML::Node SetPositionYaml( const Eigen::Translation3d& trans );
 bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans );
 
+// TODO Templatized fixed-size parser that calls this and checks dimensions
 /*! \brief Read/Write a matrix to the node */
 YAML::Node SetMatrixYaml( const Eigen::MatrixXd& mat, 
 						  std::string idDim = "dimensions", std::string idVal = "values" );

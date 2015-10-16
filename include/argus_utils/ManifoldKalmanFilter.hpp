@@ -33,6 +33,7 @@ ConvertWorldToBody( const ManifoldType& pose,
 }
 
 // TODO Use this object for means and observations?
+// TODO Templatize noiseFrame to avoid branches
 /*! \brief Represents a group object with tangent noise. Noise can be either
  * pre-multiplied (body) or post-multiplied (world). */
 template < class ManifoldType >
