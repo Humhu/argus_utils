@@ -18,24 +18,38 @@ find_package(Boost REQUIRED)
 # Use Eigen for matrices, linear algebra
 find_package(Eigen3 REQUIRED)
 
+# TODO Use Sophus for group algebras
+# include( ExternalProject )
+# ExternalProject_Add( sophus_external
+# 	GIT_REPOSITORY git@github.com:strasdat/Sophus.git
+# 	BUILD_COMMAND cmake --build .
+# 	INSTALL_COMMAND make install
+# 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}
+# )
+# set( sophus_INCLUDE_DIRS ${CATKIN_DEVEL_PREFIX}/include )
+# message( STATUS ${sophus_INCLUDE_DIRS} )
+
 catkin_package(
 	INCLUDE_DIRS 	include
+					${sophus_INCLUDE_DIRS}
 	
 	LIBRARIES 		argus_utils
 					
 	CATKIN_DEPENDS 	roscpp
+					tf
+					geometry_msgs
 					
 	DEPENDS 		Boost
 					Eigen3
 					system_lib
-					tf
-					geometry_msgs
+# 					sophus_external
 )
 
 include_directories( include
 					 ${Boost_INCLUDE_DIRS}
 					 ${EIGEN3_INCLUDE_DIR}
 					 ${catkin_INCLUDE_DIRS}
+# 					 ${sophus_INCLUDE_DIRS}
 )
 
 add_library( argus_utils

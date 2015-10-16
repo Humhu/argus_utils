@@ -20,6 +20,10 @@ bool CheckXmlType( const XmlRpc::XmlRpcValue& xml, XmlRpc::XmlRpcValue::Type typ
 	{
 		for( unsigned int i = 0; i < xml.size(); i++ )
 		{
+			// Ints can be cast to doubles, so a differing payload type here
+			// should not cause the call to return false
+			if( type == XmlRpc::XmlRpcValue::TypeDouble &&
+				xml[i].getType() == XmlRpc::XmlRpcValue::TypeInt ) { continue; }
 			if( xml[i].getType() != type ) { return false; }
 		}
 	}
@@ -146,6 +150,14 @@ XmlRpc::XmlRpcValue YamlToXml( const YAML::Node& node )
 	return xml;
 }
 
+bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node )
+{
+	XmlRpc::XmlRpcValue xml;
+	if( !nh.getParam( name, xml ) ) { return false; }
+	node = XmlToYaml( xml );
+	return true;
+}
+
 YAML::Node SetPoseYaml( const PoseSE3& pose )
 {
 	YAML::Node node;
@@ -158,7 +170,8 @@ bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
 {
 	if( (!node["quaternion"] && !node["euler"]) || !node["position"] )
 	{
-		throw std::runtime_error( "Missing quaternion/position field from pose." );
+		std::cerr << "Missing quaternion/position field from pose." << std::endl;
+		return false;
 	}
 	Eigen::Quaterniond quat;
 	if( node["quaternion"] )
@@ -194,7 +207,8 @@ bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul )
 {
 	if( !node.IsSequence() )
 	{
-		throw std::runtime_error( "Null node in GetEuler!" );
+		std::cerr << "Null node in GetEuler!" << std::endl;
+		return false;
 	}
 	
 	std::vector<double> vals;
@@ -205,13 +219,14 @@ bool GetEulerYaml( const YAML::Node& node, EulerAngles& eul )
 	catch( std::exception e )
 	{
 		std::stringstream ss;
-		ss << "Error parsing Euler string: " << node;
-		throw std::runtime_error( ss.str() );
+		std::cerr << "Error parsing Euler string: " << node << std::endl;
+		return false;
 	}
 	
 	if( vals.size() != 3 )
 	{
-		throw std::runtime_error( "Incorrect number of elements for Euler." );
+		std::cerr << "Incorrect number of elements for Euler." << std::endl;
+		return false;
 	}
 	eul.yaw = vals[0];
 	eul.pitch = vals[1];
@@ -223,7 +238,8 @@ bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
 {
 	if( !node.IsSequence() )
 	{
-		throw std::runtime_error( "Null node in GetQuaternion!" );
+		std::cerr << "Null node in GetQuaternion!" << std::endl;
+		return false;
 	}
 	
 	std::vector<double> vals;
@@ -233,14 +249,14 @@ bool GetQuaternionYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
 	}
 	catch( std::exception e )
 	{
-		std::stringstream ss;
-		ss << "Error parsing quaternion string: " << node;
-		throw std::runtime_error( ss.str() );
+		std::cerr << "Error parsing quaternion string: " << node << std::endl;
+		return false;
 	}
 	
 	if( vals.size() != 4 )
 	{
-		throw std::runtime_error( "Incorrect number of elements for quaternion." );
+		std::cerr << "Incorrect number of elements for quaternion." << std::endl;
+		return false;
 	}
 	quat = Eigen::Quaterniond( vals[0], vals[1], vals[2], vals[3] );
 	return true;
@@ -262,7 +278,8 @@ bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans )
 	std::vector<double> vals = node.as< std::vector<double> >();
 	if( vals.size() != 3 )
 	{
-		throw std::runtime_error( "Incorrect number of elements for position." );
+		std::cerr << "Incorrect number of elements for position." << std::endl;
+		return false;
 	}
 	Eigen::Vector3d vec( vals[0], vals[1], vals[2] );
 	trans = Eigen::Translation3d( vec );
@@ -295,12 +312,14 @@ bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat,
 	std::vector<double> vals = node[idVal].as< std::vector<double> >();
 	if( dimensions.size() != 2 )
 	{
-		throw std::runtime_error( "Invalid matrix dimension field." );
+		std::cerr << "Invalid matrix dimension field." << std::endl;
+		return false;
 	}
 	
 	if( dimensions[0]*dimensions[1] != vals.size() )
 	{
-		throw std::runtime_error( "Invalid number of values for matrix." );
+		std::cerr << "Invalid number of values for matrix." << std::endl;
+		return false;
 	}
 	
 	mat = Eigen::MatrixXd( dimensions[0], dimensions[1] );
