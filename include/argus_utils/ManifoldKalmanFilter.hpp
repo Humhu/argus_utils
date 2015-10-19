@@ -121,6 +121,31 @@ public:
 		}
 	}
 	
+	/*! \brief Perform a displacement in the body frame (post multiply) */
+	void PredictBody( const ManifoldType& d )
+	{
+		x = x * d;
+		Predict();
+	}
+	
+	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
+	{
+		x = x * d;
+		Predict( q, frame );
+	}
+	
+	void PredictWorld( const ManifoldType& d )
+	{
+		x = d * x;
+		Predict();
+	}
+	
+	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
+	{
+		x = x * d;
+		Predict( q, frame );
+	}
+	
 	void UpdateBody( const ManifoldType& z, ManifoldNoiseFrame frame = BodyFrame )
 	{
 		UpdateBody( z, R, frame );
@@ -243,6 +268,31 @@ public:
 		{
 			throw std::runtime_error( "Invalid frame." );
 		}
+	}
+	
+	/*! \brief Perform a displacement in the body frame (post multiply) */
+	void PredictBody( const ManifoldType& d )
+	{
+		x = x * d;
+		Predict();
+	}
+	
+	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
+	{
+		x = x * d;
+		Predict( q, frame );
+	}
+	
+	void PredictWorld( const ManifoldType& d )
+	{
+		x = d * x;
+		Predict();
+	}
+	
+	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
+	{
+		x = x * d;
+		Predict( q, frame );
 	}
 	
 	void UpdateBody( const ManifoldType& z, ManifoldNoiseFrame frame = WorldFrame )
