@@ -61,6 +61,7 @@ geometry_msgs::Quaternion QuaternionToMsg( const Eigen::Quaterniond& quat )
 	msg.y = quat.y();
 	msg.z = quat.z();
 	msg.w = quat.w();
+	return msg;
 }
 
 PoseSE3 TfToPose( const tf::Transform& trans )
