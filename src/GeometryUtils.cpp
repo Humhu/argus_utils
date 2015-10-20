@@ -49,6 +49,20 @@ Eigen::Quaterniond EulerToQuaternion( const EulerAngles& eul )
 							   * Eigen::AngleAxisd(eul.roll, Eigen::Vector3d::UnitX()) );
 }
 
+Eigen::Quaterniond MsgToQuaternion( const geometry_msgs::Quaternion& msg )
+{
+	return Eigen::Quaterniond( msg.w, msg.x, msg.y, msg.z );
+}
+
+geometry_msgs::Quaternion QuaternionToMsg( const Eigen::Quaterniond& quat )
+{
+	geometry_msgs::Quaternion msg;
+	msg.x = quat.x();
+	msg.y = quat.y();
+	msg.z = quat.z();
+	msg.w = quat.w();
+}
+
 PoseSE3 TfToPose( const tf::Transform& trans )
 {
 	tf::Vector3 translation = trans.getOrigin();
@@ -74,11 +88,7 @@ geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
 	msg.position.x = trans.x();
 	msg.position.y = trans.y();
 	msg.position.z = trans.z();
-	PoseSE3::Quaternion quat = pose.GetQuaternion();
-	msg.orientation.x = quat.x();
-	msg.orientation.y = quat.y();
-	msg.orientation.z = quat.z();
-	msg.orientation.w = quat.w();
+	msg.orientation = QuaternionToMsg( pose.GetQuaternion() );
 	
 	return msg;
 }
@@ -86,7 +96,7 @@ geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
 PoseSE3 MsgToPose( const geometry_msgs::Pose& msg )
 {
 	PoseSE3::Translation trans( msg.position.x, msg.position.y, msg.position.z );
-	PoseSE3::Quaternion quat( msg.orientation.w, msg.orientation.x, msg.orientation.y, msg.orientation.z );
+	PoseSE3::Quaternion quat = MsgToQuaternion( msg.orientation );
 	return PoseSE3( trans, quat );
 }
 

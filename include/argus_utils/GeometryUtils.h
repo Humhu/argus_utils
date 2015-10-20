@@ -1,5 +1,6 @@
 #pragma once
 
+#include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 
@@ -30,6 +31,10 @@ Eigen::Quaterniond EulerToQuaternion( const EulerAngles& eul );
 // Convert between PoseSE3 and tf Transform objects
 tf::Transform PoseToTf( const PoseSE3& pose );
 PoseSE3 TfToPose( const tf::Transform& tf );
+
+// Convert between geometry_msgs::Quaternion message and Eigen::Quaterniond
+Eigen::Quaterniond MsgToQuaternion( const geometry_msgs::Quaternion& msg );
+geometry_msgs::Quaternion QuaternionToMsg( const Eigen::Quaterniond& q );
 
 // Convert between geometry_msgs::Pose message and PoseSE3 objects
 geometry_msgs::Pose PoseToMsg( const PoseSE3& pose );
