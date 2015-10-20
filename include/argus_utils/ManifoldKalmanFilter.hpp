@@ -72,6 +72,7 @@ public:
 	}
 };
 
+// TODO Clean up interface and defaults
 // TODO Consolidate into single filter without specialization using ManifoldNoise
 /*! \class ManifoldKalmanFilter ManifoldKalmanFilter.h
 * \brief A basic discrete-time Kalman filter with compile-time sizes. */
@@ -124,8 +125,7 @@ public:
 	/*! \brief Perform a displacement in the body frame (post multiply) */
 	void PredictBody( const ManifoldType& d )
 	{
-		x = x * d;
-		Predict();
+		PredictBody( d, Q, BodyFrame );
 	}
 	
 	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
@@ -136,13 +136,12 @@ public:
 	
 	void PredictWorld( const ManifoldType& d )
 	{
-		x = d * x;
-		Predict();
+		PredictWorld( d, Q, BodyFrame );
 	}
 	
 	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
-		x = x * d;
+		x = d * x;
 		Predict( q, frame );
 	}
 	
@@ -273,8 +272,7 @@ public:
 	/*! \brief Perform a displacement in the body frame (post multiply) */
 	void PredictBody( const ManifoldType& d )
 	{
-		x = x * d;
-		Predict();
+		PredictBody( d, Q, BodyFrame );
 	}
 	
 	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
@@ -285,13 +283,12 @@ public:
 	
 	void PredictWorld( const ManifoldType& d )
 	{
-		x = d * x;
-		Predict();
+		PredictWorld( d, Q, BodyFrame );
 	}
 	
 	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
-		x = x * d;
+		x = d * x;
 		Predict( q, frame );
 	}
 	
