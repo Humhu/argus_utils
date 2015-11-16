@@ -4,11 +4,8 @@
 
 using namespace argus_utils;
 
-int main( int argc, char** argv )
+void ConversionTest()
 {
-
-	ros::init( argc, argv, "yaml_test" );
-	
 	ros::NodeHandle nh;
 	ros::NodeHandle ph( "~" );
 	
@@ -42,5 +39,30 @@ int main( int argc, char** argv )
 	xml.write( std::cout );
 	
 	std::cout << std::endl;
+}
+
+int main( int argc, char** argv )
+{
+
+	ros::init( argc, argv, "yaml_test" );
 	
+	ConversionTest();
+	
+	YAML::Node a, b, temp;
+	a["1"] = "a";
+	temp["1"] = "b";
+	a["2"] = temp;
+	
+	b["3"] = "c";
+	
+	std::cout << "YAML a:" << std::endl << a << std::endl;
+	std::cout << "YAML b:" << std::endl << b << std::endl;
+	
+	std::cout << "Merging a and b..." << std::endl;
+	YAML::Node merged = MergeYaml( a, b );
+	
+	std::cout << "YAML a:" << std::endl << a << std::endl;
+	std::cout << "YAML b:" << std::endl << b << std::endl;
+	
+	std::cout << "merged:" << std::endl << merged << std::endl;
 }

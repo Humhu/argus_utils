@@ -17,6 +17,12 @@ namespace argus_utils
 YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml );
 XmlRpc::XmlRpcValue YamlToXml( const YAML::Node& node );
 
+/*! \brief Copies one YAML node to another. Avoids lazy copying. */
+void CopyYaml( const YAML::Node& src, YAML::Node& dst );
+
+/*! \brief Merges two YAML nodes into one with a union operation. */ 
+YAML::Node MergeYaml( const YAML::Node& a, const YAML::Node& b );
+
 /*! \brief Get a parameter YAML object out of a node handle by combining calls
  * to get XmlRpc and convert it. Returns success. */
 bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node );

@@ -34,7 +34,7 @@ YAML::Node XmlToYaml( XmlRpc::XmlRpcValue& xml )
 {
 	YAML::Node yaml;
 	
-	if( xml.getType() == XmlRpc::XmlRpcValue::TypeInvalid ) { return yaml; }
+	if( xml.getType() != XmlRpc::XmlRpcValue::TypeStruct ) { return yaml; }
 	
 	XmlRpc::XmlRpcValue::iterator iter;
 	for( iter = xml.begin(); iter != xml.end(); iter++ )
@@ -149,6 +149,55 @@ XmlRpc::XmlRpcValue YamlToXml( const YAML::Node& node )
 		std::cerr << "Invalid YAML node type." << std::endl;
 	}
 	return xml;
+}
+
+void CopyYaml( const YAML::Node& src, YAML::Node& dst )
+{
+	if( src.IsNull() ) { return; }
+	if( src.IsScalar() ) 
+	{ 
+		dst = src;
+		return;
+	};
+	
+	YAML::Node::const_iterator iter;
+	for( iter = src.begin(); iter != src.end(); iter++ )
+	{
+		dst[ iter->first.as<std::string>() ] = iter->second;
+	}
+}
+
+YAML::Node MergeYaml( const YAML::Node& a, const YAML::Node& b )
+{
+	// Short circuit cases
+	if( a.IsNull() ) { return b; }
+	else if( b.IsNull() ) { return a; }
+	
+	if( !a.IsMap() || !b.IsMap() )
+	{
+		throw std::runtime_error( "Cannot merge non-map nodes." );
+	}
+	
+	YAML::Node node;
+	CopyYaml( a, node );
+	YAML::Node::const_iterator iter;
+	// Cycle through b and add all fields to node
+	for( iter = b.begin(); iter != b.end(); iter++ )
+	{
+		std::string key = iter->first.as<std::string>();
+		
+		// If both a and b have a key we have to merge them
+		if( node[key] )
+		{
+			node[key] = MergeYaml( node[key], iter->second );
+		}
+		// Otherwise we just add it
+		else
+		{
+			node[key] = iter->second;
+		}
+	}
+	return node;
 }
 
 bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node )
