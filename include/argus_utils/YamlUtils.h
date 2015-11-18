@@ -23,9 +23,10 @@ void CopyYaml( const YAML::Node& src, YAML::Node& dst );
 /*! \brief Merges two YAML nodes into one with a union operation. */ 
 YAML::Node MergeYaml( const YAML::Node& a, const YAML::Node& b );
 
-/*! \brief Get a parameter YAML object out of a node handle by combining calls
+/*! \brief Get/set a parameter YAML object out of a node handle by combining calls
  * to get XmlRpc and convert it. Returns success. */
-bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node );
+bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, YAML::Node& node );
+void SetYamlParam( ros::NodeHandle& nh, const std::string& name, const YAML::Node& node );
 
 /*! \brief Read/Write a PoseSE3 object to the node */
 YAML::Node SetPoseYaml( const PoseSE3& pose );

@@ -200,12 +200,18 @@ YAML::Node MergeYaml( const YAML::Node& a, const YAML::Node& b )
 	return node;
 }
 
-bool GetYamlParam( ros::NodeHandle& nh, const std::string name, YAML::Node& node )
+bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, YAML::Node& node )
 {
 	XmlRpc::XmlRpcValue xml;
 	if( !nh.getParam( name, xml ) ) { return false; }
 	node = XmlToYaml( xml );
 	return true;
+}
+
+void SetYamlParam( ros::NodeHandle& nh, const std::string& name, const YAML::Node& node )
+{
+	XmlRpc::XmlRpcValue xml = YamlToXml( node );
+	nh.setParam( name, xml );
 }
 
 YAML::Node SetPoseYaml( const PoseSE3& pose )
