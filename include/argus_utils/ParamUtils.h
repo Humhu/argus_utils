@@ -9,20 +9,6 @@ namespace argus_utils
 template <typename T>
 bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t );
 
-template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, unsigned int& t )
-{
-	int val;
-	if( !nh.getParam( name, val ) ) { return false; }
-	if( val < 0 )
-	{
-		ROS_WARN_STREAM( "Attempted to parse value " << val << " as unsigned int." );
-		return false;
-	}
-	t = static_cast<unsigned int>( val );
-	return true;
-}
-
 template <typename T>
 bool GetParamDefault( ros::NodeHandle& nh, const std::string& name, T& t, const T& def )
 {
