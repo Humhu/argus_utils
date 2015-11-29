@@ -83,22 +83,16 @@ namespace argus_utils
 			
 	}
 
-	PoseSE2::AdjointMatrix PoseSE2::GetAdjoint() const 
+	PoseSE2::AdjointMatrix PoseSE2::Adjoint( const PoseSE2& pose ) 
 	{
 		AdjointMatrix m = AdjointMatrix::Zero();
-		m.block<2,2>(0,0) = rot.matrix();
-		m(0,2) = trans.y();
-		m(1,2) = -trans.x();
+		m.block<2,2>(0,0) = pose.rot.matrix();
+		m(0,2) = pose.trans.y();
+		m(1,2) = -pose.trans.x();
 		m(2,2) = 1;
 		return m;
 	}
 
-	PoseSE2::TangentVector PoseSE2::Adjoint( const TangentVector& other ) const 
-	{
-		AdjointMatrix m = GetAdjoint();
-		return m*other;
-	}
-	
 	PoseSE2::Translation PoseSE2::GetTranslation() const 
 	{
 		return trans;

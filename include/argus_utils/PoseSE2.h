@@ -5,6 +5,7 @@
 #include <iostream>
 
 // TODO: Templatize to choose between float and double
+// TODO Wrap transform instead of rot/trans separately
 namespace argus_utils 
 {
 
@@ -53,9 +54,7 @@ namespace argus_utils
 		
 		static PoseSE2::TangentVector Log( const PoseSE2& pose );
 		static PoseSE2 Exp( const PoseSE2::TangentVector& tangent );
-		
-		PoseSE2::AdjointMatrix GetAdjoint() const;
-		PoseSE2::TangentVector Adjoint( const TangentVector& other ) const;
+		static PoseSE2::AdjointMatrix Adjoint( const PoseSE2& pose );
 		
 		PoseSE2 operator+() const;
 		PoseSE2 operator-() const;

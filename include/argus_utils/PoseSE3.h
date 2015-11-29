@@ -57,15 +57,8 @@ namespace argus_utils
 
 		static PoseSE3 Exp( const TangentVector& other );
 		static PoseSE3::TangentVector Log( const PoseSE3& other );
+		static PoseSE3::AdjointMatrix Adjoint( const PoseSE3& other );
 
-		/*! \brief Returns the adjoint matrix that maps velocities around the identity
-			* to around this PoseSE3. */
-		PoseSE3::AdjointMatrix GetAdjoint() const;
-
-		/*! \brief Applies the adjoint to a velocity around the identity to around
-			* this PoseSE3. */
-		PoseSE3::TangentVector Adjoint( const TangentVector& other ) const;
-		
 		PoseSE3 operator+() const;
 		PoseSE3 operator-() const;
 		PoseSE3 operator*( const PoseSE3& other ) const;

@@ -174,20 +174,14 @@ PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& pose )
 	return v;
 }
 
-PoseSE3::AdjointMatrix PoseSE3::GetAdjoint() const 
+PoseSE3::AdjointMatrix PoseSE3::Adjoint( const PoseSE3& other )
 {
 	AdjointMatrix m = AdjointMatrix::Zero();
-	m.block<3,3>(0,0) = tform.linear();
-	m.block<3,3>(3,3) = tform.linear();
-	TranslationVector t = tform.translation();
-	m.block<3,3>(0,3) = cross_product_matrix(t)*tform.linear();
+	m.block<3,3>(0,0) = other.tform.linear();
+	m.block<3,3>(3,3) = other.tform.linear();
+	TranslationVector t = other.tform.translation();
+	m.block<3,3>(0,3) = cross_product_matrix( t ) * other.tform.linear();
 	return m;
-}
-
-PoseSE3::TangentVector PoseSE3::Adjoint( const TangentVector& other ) const 
-{
-	AdjointMatrix m = GetAdjoint();
-	return m*other;
 }
 
 PoseSE3 PoseSE3::operator+() const 
