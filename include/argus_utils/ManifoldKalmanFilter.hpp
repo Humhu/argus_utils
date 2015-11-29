@@ -19,7 +19,7 @@ typename ManifoldType::CovarianceMatrix
 ConvertBodyToWorld( const ManifoldType& pose, 
                     const typename ManifoldType::CovarianceMatrix& cov )
 {
-	typename ManifoldType::AdjointMatrix adj = pose.GetAdjoint();
+	typename ManifoldType::AdjointMatrix adj = ManifoldType::Adjoint( pose );
 	return adj * cov * adj.transpose();
 }
 
@@ -28,7 +28,7 @@ typename ManifoldType::CovarianceMatrix
 ConvertWorldToBody( const ManifoldType& pose, 
                     const typename ManifoldType::CovarianceMatrix& cov )
 {
-	typename ManifoldType::AdjointMatrix invAdj = pose.GetAdjoint().inverse();
+	typename ManifoldType::AdjointMatrix invAdj = ManifoldType::Adjoint( pose ).inverse();
 	return invAdj * cov * invAdj.transpose();
 }
 
