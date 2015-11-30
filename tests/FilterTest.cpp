@@ -53,7 +53,7 @@ void TestKF() {
 	std::cout << "Predicting..." << std::endl;
 	KF::ControlVector u;
 	u << 0, -1, 1;
-	kf.Predict( u );
+	kf.PredictControl( u );
 	std::cout << "KF is at mean: " << kf.EstimateMean().transpose() << " with covariance: " << std::endl;
 	std::cout << kf.EstimateCovariance() << std::endl;
 

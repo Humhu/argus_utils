@@ -52,13 +52,13 @@ public:
 	}
 
 	/*! \brief Execute a predict step with controls. */
-	void Predict( const ControlVector& u )
+	void PredictControl( const ControlVector& u )
 	{
-		Predict( u, Q );
+		PredictControl( u, Q );
 	}
 	
 	/*! \brief Execute a predict step with controls and prescribed covariance. */
-	void Predict( const ControlVector& u, const StateCovariance& q )
+	void PredictControl( const ControlVector& u, const StateCovariance& q )
 	{
 		Predict();
 		x += B*u;
