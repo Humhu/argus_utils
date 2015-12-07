@@ -9,36 +9,16 @@ namespace argus_utils {
 class Semaphore {
 public:
 
-	Semaphore( int startCounter = 0 )
-		: counter( startCounter )
-	{}
+	Semaphore( int startCounter = 0 );
 	
-	void Increment( int i = 1 )
-	{
-		boost::unique_lock<Mutex> lock( mutex );
-		counter += i;
-		hasCounters.notify_all(); // TODO all or one?
-	}
+	void Increment( int i = 1 );
 	
-	void Decrement( int i = 1 )
-	{
-		boost::unique_lock<Mutex> lock( mutex );
-		
-		while( counter < i )
-		{
-			hasCounters.wait( lock );
-		}
-		counter = counter - i;
-	}
+	void Decrement( int i = 1 );
 
 	// TODO IncrementWait and DecrementWait
 	
 	/*! \brief Returns how many counters are available. */
-	int Query() const
-	{
-		boost::shared_lock<Mutex> lock( mutex );
-		return counter;
-	}
+	int Query() const;
 	
 protected:
 

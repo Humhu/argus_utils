@@ -57,6 +57,8 @@ add_library( argus_utils
 	src/ParamUtils.cpp
 	src/PoseSE2.cpp
 	src/PoseSE3.cpp
+	src/Semaphore.cpp
+	src/WorkerPool.cpp
 	src/YamlUtils.cpp
 )
 target_link_libraries( argus_utils
