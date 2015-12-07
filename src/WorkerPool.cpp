@@ -4,10 +4,10 @@ namespace argus_utils
 {
 
 WorkerPool::WorkerPool()
-: numWorkers( 4 ) {}
+: numWorkers( 4 ), activeThreads( 0 ) {}
 	
 WorkerPool::WorkerPool( unsigned int n )
-: numWorkers( n ) {}
+: numWorkers( n ), activeThreads( 0 ) {}
 	
 WorkerPool::~WorkerPool()
 {
@@ -41,9 +41,9 @@ void WorkerPool::StopWorkers()
 void WorkerPool::WaitOnJobs()
 {
 	Lock lock( mutex );
-	while( !jobQueue.empty() )
+	while( !jobQueue.empty() || activeThreads > 0 )
 	{
-		hasNoJobs.wait( lock );
+		threadsDone.wait( lock );
 	}
 }
 
@@ -54,22 +54,28 @@ void WorkerPool::WorkerLoop()
 		{
 			boost::this_thread::interruption_point();
 
+			// Reacquire lock to allow other threads a chance
 			Lock lock( mutex );
+			
+			// Wait on a job here
 			while( jobQueue.empty() )
 			{
 				hasJobs.wait( lock );
 			}
 			
+			activeThreads++;
 			Job job = jobQueue.front();
 			jobQueue.pop();
-			if( jobQueue.size() == 0 )
-			{
-				hasNoJobs.notify_all();
-			}
-			
 			lock.unlock();
 			
 			job();
+			
+			lock.lock();
+			activeThreads--;
+			if( activeThreads == 0 )
+			{
+				threadsDone.notify_all();
+			}
 		}
 	}
 	catch( boost::thread_interrupted e ) { return; }

@@ -4,6 +4,8 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/function.hpp>
 
+#include "argus_utils/Semaphore.h"
+
 #include <queue>
 
 namespace argus_utils {
@@ -38,8 +40,11 @@ protected:
 	boost::shared_mutex mutex;
 	unsigned int numWorkers;
 	std::queue<Job> jobQueue;
+	
+	unsigned int activeThreads;
 	boost::condition_variable_any hasJobs;
-	boost::condition_variable_any hasNoJobs;
+	boost::condition_variable_any threadsDone;
+	
 	boost::thread_group workerThreads;
 	
 	void WorkerLoop();
