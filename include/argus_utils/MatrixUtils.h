@@ -68,6 +68,44 @@ bool ParseMatrix( const boost::array<Scalar,N>& data,
 	return ParseMatrix<Derived,Scalar>( data.data(), mat, order );
 }
 
+// Parses an array as if it is the unique elements of a symmetric matrix. */
+template <typename Derived, typename Scalar>
+bool ParseSymmetricMatrix( const Scalar* src,
+                           Eigen::DenseBase<Derived>& mat )
+{
+	if( mat.rows() != mat.cols() ) { return false; }
+	
+	unsigned int ind = 0;
+	for( unsigned int i = 0; i < mat.rows(); i++ )
+	{
+		for( unsigned int j = i; j < mat.cols(); j++ )
+		{
+			mat(i,j) = src[ind];
+			mat(j,i) = src[ind];
+			ind++;
+		}
+	}
+	return true;
+}
+
+template <typename Derived, typename Scalar>
+bool ParseSymmetricMatrix( const std::vector<Scalar>& data,
+                           Eigen::DenseBase<Derived>& mat )
+{
+	size_t n = mat.rows();
+	if( ( (n+1) * n ) / 2 != data.size() ) { return false; }
+	return ParseSymmetricMatrix( data.data(), mat );
+}
+
+template <typename Derived, typename Scalar, unsigned long N>
+bool ParseSymmetricMatrix( const boost::array<Scalar,N>& data,
+                           Eigen::DenseBase<Derived>& mat )
+{
+	size_t n = mat.rows();
+	if( ( (n+1) * n ) / 2 != N ) { return false; }
+	return ParseSymmetricMatrix( data.data(), mat );
+}
+
 // Generic serialization - avoid using unless necessary
 template <typename Derived, typename Scalar>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
@@ -122,6 +160,44 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 	if( mat.rows()*mat.cols() != N ) { return false; }
 	
 	return SerializeMatrix<Derived, Scalar>( mat, dst.data(), order );
+}
+
+// Generic serialization for symmetric matrices. Stores in same order as parsing.
+// Fails if matrix is not square or not symmetric
+template <typename Derived, typename Scalar>
+bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
+                               Scalar* dst )
+{
+	if( mat.rows() != mat.cols() ) { return false; }
+	
+	unsigned int ind = 0;
+	for( unsigned int i = 0; i < mat.rows(); i++ )
+	{
+		for( unsigned int j = i; j < mat.cols(); j++ )
+		{
+			if( mat(i,j) != mat(j,i) ) { return false; }
+			dst[ind] = mat(i,j);
+			ind++;
+		}
+	}
+}
+
+template <typename Derived, typename Scalar>
+bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
+                      std::vector<Scalar>& dst )
+{
+	size_t n = mat.rows();
+	dst.resize( ( (n+1) * n ) / 2 );
+	return SerializeMatrix<Derived, Scalar>( mat, dst.data() );
+}
+
+template <typename Derived, typename Scalar, unsigned long N>
+bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
+                      boost::array<Scalar, N>& dst )
+{
+	size_t n = mat.rows();
+	if( ( (n+1) * n ) / 2 != N ) { return false; }
+	return SerializeMatrix<Derived, Scalar>( mat, dst.data() );
 }
 
 template <typename DerivedIn, typename DerivedOut, unsigned long N, unsigned long M>
