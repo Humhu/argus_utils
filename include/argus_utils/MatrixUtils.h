@@ -180,6 +180,7 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 			ind++;
 		}
 	}
+	return true;
 }
 
 template <typename Derived, typename Scalar>
@@ -188,7 +189,7 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 {
 	size_t n = mat.rows();
 	dst.resize( ( (n+1) * n ) / 2 );
-	return SerializeMatrix<Derived, Scalar>( mat, dst.data() );
+	return SerializeSymmetricMatrix<Derived, Scalar>( mat, dst.data() );
 }
 
 template <typename Derived, typename Scalar, unsigned long N>
@@ -197,7 +198,7 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 {
 	size_t n = mat.rows();
 	if( ( (n+1) * n ) / 2 != N ) { return false; }
-	return SerializeMatrix<Derived, Scalar>( mat, dst.data() );
+	return SerializeSymmetricMatrix<Derived, Scalar>( mat, dst.data() );
 }
 
 template <typename DerivedIn, typename DerivedOut, unsigned long N, unsigned long M>
