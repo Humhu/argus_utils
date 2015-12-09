@@ -98,7 +98,9 @@ public:
 	ObservationCovariance& ObsCovariance() { return R; }
 	
 	ManifoldType& EstimateMean() { return x; }
+	const ManifoldType& EstimateMean() const { return x; }
 	StateCovariance& EstimateCovariance() { return S; }
+	const StateCovariance& EstimateCovariance() const { return S; }
 
 	void Predict()
 	{

@@ -31,15 +31,22 @@ public:
 	KalmanFilter() {}
 
 	StateTransition& TransMatrix() { return A; }
+	const StateTransition& TransMatrix() const { return A; }
 	StateCovariance& TransCovariance() { return Q; }
+	const StateCovariance& TransCovariance() const { return Q; }
 	
 	ControlTransition& ControlMatrix() { return B; }
+	const ControlTransition& ControlMatrix() const { return B; }
 	
 	ObservationMatrix& ObsMatrix() { return C; }
+	const ObservationMatrix& ObsMatrix() const { return C; }
 	ObservationCovariance& ObsCovariance() { return R; }
+	const ObservationCovariance& ObsCovariance() const { return R; }
 	
 	StateVector& EstimateMean() { return x; }
+	const StateVector& EstimateMean() const { return x; }
 	StateCovariance& EstimateCovariance() { return S; }
+	const StateCovariance& EstimateCovariance() const { return S; }
 	
 	/*! \brief Execute a predict step with no controls. */
 	void Predict() { Predict( Q ); };
