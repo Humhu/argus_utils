@@ -175,7 +175,6 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 	{
 		for( unsigned int j = i; j < mat.cols(); j++ )
 		{
-			if( mat(i,j) != mat(j,i) ) { return false; }
 			dst[ind] = mat(i,j);
 			ind++;
 		}
