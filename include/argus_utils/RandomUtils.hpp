@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/random/discrete_distribution.hpp>
 #include <boost/random/random_number_generator.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
@@ -52,6 +53,62 @@ void BitmapSampling( unsigned int numItems, unsigned int subsetSize,
 		count++;
 	}
 	
+}
+
+/*! \brief Weighted sampling with replacement. */
+template <class Engine>
+void NaiveWeightedSample( const std::vector<double>& weights, 
+                          unsigned int numDraws,
+                          std::vector<unsigned int>& inds, 
+                          Engine& engine )
+{
+	inds.resize( numDraws );
+	boost::random::discrete_distribution<> dist( weights );
+	for( unsigned int i = 0; i < numDraws; i++ )
+	{
+		inds[i] = dist( engine );
+	}
+}
+
+/*! \brief Simple low-variance "comb" weighted sampling. */
+template <class Engine>
+void LowVarianceWeightedSample( const std::vector<double>& weights, 
+                                unsigned int numDraws,
+                                std::vector<unsigned int>& inds, 
+                                Engine& engine )
+{
+	inds.resize( numDraws );
+	inds.clear();
+	
+	double totalWeight = 0;
+	for( unsigned int i = 0; i < weights.size(); i++ ) { totalWeight += weights[i]; }
+	
+	double stride = totalWeight/( numDraws + 1 );
+	
+	boost::random::uniform_01<> dist;
+	double currentPoint = stride*dist( engine );
+	
+	double accumulatedWeights = weights[0];
+	
+	unsigned int ind = 0;
+	while( inds.size() < numDraws )
+	{
+		if( accumulatedWeights >= currentPoint )
+		{
+			inds.push_back( ind );
+			currentPoint += stride;
+		}
+		else
+		{
+			// Sometimes numerical precision errors cause the last element to not get added
+			if( ind == weights.size()-1 ) { 
+				inds.push_back( ind );
+				break; 
+			}
+			ind++;
+			accumulatedWeights += weights[ind];
+		}
+	}
 }
 
 }
