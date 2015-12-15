@@ -6,7 +6,6 @@
 
 namespace argus_utils
 {
-
 	
 /*! \brief Boost-based reservoir sampling implementation. Best used when sampling
  * a medium subset. */

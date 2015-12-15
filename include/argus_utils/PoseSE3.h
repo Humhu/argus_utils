@@ -74,7 +74,7 @@ namespace argus_utils
 	
 	// TODO Implement!
 	PoseSE3::CovarianceVector unroll_covariance( const PoseSE3::CovarianceMatrix& cov );
-	PoseSE3::CovarianceMatrix rollup_covariacne( const PoseSE3::CovarianceVector& vec );
+	PoseSE3::CovarianceMatrix rollup_covariance( const PoseSE3::CovarianceVector& vec );
 
 	template<class C>
 	Eigen::Matrix<C,3,3> cross_product_matrix( const Eigen::Matrix<C,3,1>& v );
