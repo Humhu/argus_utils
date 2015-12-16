@@ -133,7 +133,16 @@ public:
 	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
 		x = x * d;
-		Predict( q, frame );
+		typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( d );
+		if( frame == BodyFrame )
+		{
+			S = A*S*A.transpose() + q;
+		}
+		else 
+		{
+			S = A*(S + q)*A.transpose();
+		}
+// 		Predict( q, frame );
 	}
 	
 	void PredictWorld( const ManifoldType& d )
@@ -143,8 +152,19 @@ public:
 	
 	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
-		x = d * x;
-		Predict( q, frame );
+		if( frame == BodyFrame )
+		{
+			typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( x );
+			x = d * x;
+			S = A*q*A.transpose() + S;
+		}
+		else 
+		{
+			x = d * x;
+			typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( x );
+			S = A*q*A.transpose() + S;
+		}
+// 		Predict( q, frame );
 	}
 	
 	void UpdateBody( const ManifoldType& z, ManifoldNoiseFrame frame = BodyFrame )
@@ -279,8 +299,19 @@ public:
 	
 	void PredictBody( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
-		x = x * d;
-		Predict( q, frame );
+		if( frame == BodyFrame )
+		{
+			x = x * d;
+			typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( x ).inverse();
+			S = S + A*q*A.transpose();
+		}
+		else
+		{
+			typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( x ).inverse();
+			x = x * d;
+			S = S + A*q*A.transpose();
+		}
+// 		Predict( q, frame );
 	}
 	
 	void PredictWorld( const ManifoldType& d )
@@ -291,7 +322,16 @@ public:
 	void PredictWorld( const ManifoldType& d, const StateCovariance& q, ManifoldNoiseFrame frame )
 	{
 		x = d * x;
-		Predict( q, frame );
+		typename ManifoldType::AdjointMatrix A = ManifoldType::Adjoint( d );
+		if( frame == BodyFrame )
+		{
+			S = A*(S+q)*A.transpose();
+		}
+		else
+		{
+			S = A*S*A.transpose() + q;
+		}
+// 		Predict( q, frame );
 	}
 	
 	void UpdateBody( const ManifoldType& z, ManifoldNoiseFrame frame = WorldFrame )
