@@ -4,6 +4,7 @@
 #include <map>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/foreach.hpp>
 
 namespace argus_utils 
 {
@@ -45,6 +46,17 @@ template <typename Index, typename Content>
 Index get_lowest_key( const std::map<Index, Content>& m )
 {
 	return m.begin()->first;
+}
+
+template <typename Key>
+std::set<Key> make_set( const std::vector<Key>& vec )
+{
+	std::set<Key> span;
+	BOOST_FOREACH( const Key& k, vec )
+	{
+		span.insert( k );
+	}
+	return span;
 }
 
 } // end namespace argus_utils
