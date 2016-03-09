@@ -3,7 +3,7 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
-// TODO Deprecate Pose and move to sophus::se3d
+// @todo: Deprecate Pose and move to sophus::se3d
 // #include <sophus/se3.hpp>
 
 namespace argus_utils

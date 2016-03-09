@@ -17,6 +17,8 @@ class MultivariateGaussian
 {
 public:
 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 	typedef Scalar ScalarType;
 	typedef Eigen::Matrix<Scalar, N, 1> VectorType;
 	typedef Eigen::Matrix<Scalar, N, N> MatrixType;

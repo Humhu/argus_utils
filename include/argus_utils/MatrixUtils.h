@@ -16,8 +16,8 @@ enum MatrixStorageOrder
 // Generic parsing - requires that mat have set dimensions
 template <typename Derived, typename Scalar>
 bool ParseMatrix( const Scalar* src,
-				  Eigen::DenseBase<Derived>& mat,
-				  int order = RowMajor )
+                  Eigen::DenseBase<Derived>& mat,
+                  int order = RowMajor )
 {
 	unsigned int ind = 0;
 	if( order == RowMajor )
@@ -49,8 +49,8 @@ bool ParseMatrix( const Scalar* src,
 // Parsing from a std vector
 template <typename Derived, typename Scalar>
 bool ParseMatrix( const std::vector<Scalar>& data,
-				  Eigen::DenseBase<Derived>& mat,
-				  int order = RowMajor )
+                  Eigen::DenseBase<Derived>& mat,
+                  int order = RowMajor )
 {
 	if( mat.rows()*mat.cols() != data.size() ) { return false; }
 	
@@ -60,8 +60,8 @@ bool ParseMatrix( const std::vector<Scalar>& data,
 // Parsing from a boost array
 template <typename Derived, typename Scalar, unsigned long N>
 bool ParseMatrix( const boost::array<Scalar,N>& data,
-				  Eigen::DenseBase<Derived>& mat,
-				  int order = RowMajor )
+                  Eigen::DenseBase<Derived>& mat,
+                  int order = RowMajor )
 {
 	if( mat.rows()*mat.cols() != N ) { return false; }
 	
@@ -109,8 +109,8 @@ bool ParseSymmetricMatrix( const boost::array<Scalar,N>& data,
 // Generic serialization - avoid using unless necessary
 template <typename Derived, typename Scalar>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
-					  Scalar* dst,
-					  int order = RowMajor )
+                      Scalar* dst,
+                      int order = RowMajor )
 {
 
 	unsigned int ind = 0;
@@ -143,8 +143,8 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 // General purpose std vectors
 template <typename Derived, typename Scalar>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
-					  std::vector<Scalar>& dst,
-					  int order = RowMajor )
+                      std::vector<Scalar>& dst,
+                      int order = RowMajor )
 {
 	dst.resize( mat.rows()*mat.cols() );
 	
@@ -154,8 +154,8 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 // Specific to ROS fixed-length array message fields (boost arrays)
 template <typename Derived, typename Scalar, unsigned long N>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
-					  boost::array<Scalar, N>& dst,
-					  int order = RowMajor )
+                      boost::array<Scalar, N>& dst,
+                      int order = RowMajor )
 {
 	if( mat.rows()*mat.cols() != N ) { return false; }
 	
@@ -202,9 +202,9 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 
 template <typename DerivedIn, typename DerivedOut, unsigned long N, unsigned long M>
 bool GetSubmatrix( const Eigen::DenseBase<DerivedIn>& mat,
-				   Eigen::DenseBase<DerivedOut>& sub,
-				   const std::array<unsigned int, N>& rowInds,
-				   const std::array<unsigned int, M>& colInds )
+                   Eigen::DenseBase<DerivedOut>& sub,
+                   const std::array<unsigned int, N>& rowInds,
+                   const std::array<unsigned int, M>& colInds )
 {
 	assert( sub.rows()*sub.cols() == N*M );
 	
@@ -230,9 +230,9 @@ bool GetSubmatrix( const Eigen::DenseBase<DerivedIn>& mat,
 
 template <typename DerivedIn, typename DerivedOut, unsigned long N, unsigned long M>
 bool PutSubmatrix( Eigen::DenseBase<DerivedIn>& mat,
-				   const Eigen::DenseBase<DerivedOut>& sub,
-				   const std::array<unsigned int, N>& rowInds,
-				   const std::array<unsigned int, M>& colInds )
+                   const Eigen::DenseBase<DerivedOut>& sub,
+                   const std::array<unsigned int, N>& rowInds,
+                   const std::array<unsigned int, M>& colInds )
 {
 	assert( sub.rows()*sub.cols() == N*M );
 	
