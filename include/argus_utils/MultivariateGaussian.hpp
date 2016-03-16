@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Eigen/LU>
 #include <Eigen/Core>
 #include <Eigen/Cholesky>
 
@@ -9,7 +10,10 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/mersenne_twister.hpp>
 
-namespace argus_utils {
+#include <cassert>
+
+namespace argus_utils 
+{
 
 /*! \brief Simple multivariate normal sampling and PDF class. */
 template <int N, typename Engine = boost::mt19937, typename Scalar = double>
@@ -78,7 +82,7 @@ public:
 	}
     
 	const VectorType& GetMean() const { return mean; }
-	const MatrixType& GetCovariance() const { return mean; }
+	const MatrixType& GetCovariance() const { return covariance; }
 	const MatrixType& GetCholesky() const { return L; }
 	
 	/*! \brief Generate a sample truncated at a specified number of standard deviations. */
@@ -103,7 +107,7 @@ public:
     double EvaluateProbability( const VectorType& x ) const
 	{
 		VectorType diff = x - mean;
-		Eigen::Matrix<Scalar, 1, 1> exponent = -0.5 * diff.transpose() * info * diff;
+		Eigen::Matrix<Scalar, 1, 1> exponent = -0.5 * diff.transpose() * llt.solve( diff );
 		return z * std::exp( exponent(0) );
 	}
     
@@ -119,13 +123,15 @@ protected:
 	MatrixType L;
 
 	double z; // Normalization constant;
-	MatrixType info; // Inverse covariance;
-	
+	Eigen::LLT<MatrixType> llt;
+
 	void Initialize()
 	{
-		L = covariance.llt().matrixL();
+		assert( mean.rows() == covariance.rows() );
+		assert( mean.rows() == covariance.cols() );
+		llt = Eigen::LLT<MatrixType>( covariance );
+		L = llt.matrixL();
 		z = std::pow( 2*M_PI, -N/2.0 ) * std::pow( covariance.determinant(), -0.5 );
-		info = covariance.inverse();
 	}
 
 };
