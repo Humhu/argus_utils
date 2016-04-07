@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Eigen/Cholesky>
 
 namespace argus_utils 
 {
@@ -77,11 +78,11 @@ public:
 	/*! \brief Execute a measurement update with a prescribed covariance. */
 	void Update( const ObservationVector& z, const ObservationCovariance& r )
 	{
-		ObservationVector yres = z - C*x;
-		ObservationCovariance Sres = C*S*C.transpose() + r;
-		Eigen::ColPivHouseholderQR<ObservationCovariance> dec( Sres.transpose() );
+		ObservationVector v = z - C*x;
+		ObservationCovariance V = C*S*C.transpose() + r;
+		Eigen::LLT<ObservationCovariance> dec( V );
 		ObservationMatrix K = dec.solve( C*S.transpose() ).transpose();
-		x = x + K*yres;
+		x = x + K*v;
 		S = ( StateCovariance::Identity() - K*C )*S;
 	}
 
