@@ -90,11 +90,11 @@ public:
 			throw std::runtime_error( "Kalman Filter: y or C are empty." );
 		}
 
-		ObservationVector z = y - C*x;
-		ObservationCovariance Z = C*S*C.transpose() + r;
-		Eigen::LDLT<ObservationCovariance> dec( Z );
+		ObservationVector v = y - C*x;
+		ObservationCovariance V = C*S*C.transpose() + r;
+		Eigen::LLT<ObservationCovariance> dec( V );
 		ObservationMatrix K = dec.solve( C*S ).transpose();
-		x = x + K*z;
+		x = x + K*v;
 		S = ( StateCovariance::Identity() - K*C )*S;
 	}
 
