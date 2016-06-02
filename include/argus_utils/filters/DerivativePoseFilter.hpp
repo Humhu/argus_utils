@@ -3,7 +3,7 @@
 #include "argus_utils/utils/LinalgTypes.h"
 #include <Eigen/Cholesky>
 #include <boost/bind.hpp>
-
+#include <iostream>
 namespace argus
 {
 
@@ -114,7 +114,7 @@ public:
 		// block does not affect the derivatives anyways
 		TransitionMatrix A = _tfunc( dt );
 		FullVecType xup = A * x;
-		PoseType displacement = PoseType::Exp( xup.template head<TangentDim>() * dt );
+		PoseType displacement = PoseType::Exp( xup.template segment<TangentDim>(TangentDim) * dt );
 		A.template topLeftCorner<TangentDim,TangentDim>() = PoseType::Adjoint( displacement );
 		_derivs = xup.template tail<DerivsDim>();
 		_pose = _pose * displacement;
