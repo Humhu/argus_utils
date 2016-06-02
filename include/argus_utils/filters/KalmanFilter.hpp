@@ -1,30 +1,30 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Eigen/Cholesky>
 
-namespace argus_utils 
+namespace argus 
 {
 
 /*! \class KalmanFilter KalmanFilter.h
-* \brief A basic discrete-time Kalman filter with compile-time sizes. */
-template < typename Scalar = double,
-           int StateDim = Eigen::Dynamic,
+ * \brief A basic discrete-time Kalman filter. */
+template < int StateDim = Eigen::Dynamic,
            int ControlDim = Eigen::Dynamic,
            int ObsDim = Eigen::Dynamic >
 class KalmanFilter 
 {
 public:
 
-	typedef Eigen::Matrix<Scalar, StateDim, 1>          StateVector;
-	typedef Eigen::Matrix<Scalar, StateDim, StateDim>   StateCovariance;
-	typedef Eigen::Matrix<Scalar, StateDim, StateDim>   StateTransition;
+	typedef Eigen::Matrix<double, StateDim, 1>          StateVector;
+	typedef Eigen::Matrix<double, StateDim, StateDim>   StateCovariance;
+	typedef Eigen::Matrix<double, StateDim, StateDim>   StateTransition;
 	
-	typedef Eigen::Matrix<Scalar, ControlDim, 1>        ControlVector;
-	typedef Eigen::Matrix<Scalar, StateDim, ControlDim> ControlTransition;
+	typedef Eigen::Matrix<double, ControlDim, 1>        ControlVector;
+	typedef Eigen::Matrix<double, StateDim, ControlDim> ControlTransition;
 
-	typedef Eigen::Matrix<Scalar, ObsDim, 1>            ObservationVector;
-	typedef Eigen::Matrix<Scalar, ObsDim, StateDim>     ObservationMatrix;
-	typedef Eigen::Matrix<Scalar, ObsDim, ObsDim>       ObservationCovariance;
+	typedef Eigen::Matrix<double, ObsDim, 1>            ObservationVector;
+	typedef Eigen::Matrix<double, ObsDim, StateDim>     ObservationMatrix;
+	typedef Eigen::Matrix<double, ObsDim, ObsDim>       ObservationCovariance;
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
@@ -49,39 +49,52 @@ public:
 	const StateCovariance& EstimateCovariance() const { return S; }
 	
 	/*! \brief Execute a predict step with no controls. */
-	void Predict() { Predict( Q ); };
+	void Predict() { PredictControl( ControlVector(), Q ); }
 
 	/*! \brief Execute a predict step with no controls and prescribed covariance. */
-	void Predict( const StateCovariance& q ) 
-	{
-		x = A*x;
-		S = A*S*A.transpose() + q;
-	}
+	void Predict( const StateCovariance& q ) { PredictControl( ControlVector(), q ); }
 
 	/*! \brief Execute a predict step with controls. */
-	void PredictControl( const ControlVector& u )
-	{
-		PredictControl( u, Q );
-	}
+	void PredictControl( const ControlVector& u ) { PredictControl( u, Q ); }
 	
 	/*! \brief Execute a predict step with controls and prescribed covariance. */
 	void PredictControl( const ControlVector& u, const StateCovariance& q )
 	{
-		Predict();
-		x += B*u;
+		if( A.size() == 0 )
+		{
+			throw std::runtime_error( "KalmanFilter: A is empty." );
+		}
+
+		if( u.size() == 0 || B.size() == 0 ) { x = A*x; }
+		else { x = A*x + B*u; }
+
+		if( q.size() == 0 ) 
+		{ 
+			if( Q.size() == 0 )
+			{
+				throw std::runtime_error( "KalmanFilter: Q is empty." );
+			}
+			S = A*S*A.transpose() + Q; 
+		}
+		else { S = A*S*A.transpose() + q; }
 	}
 	
 	/*! \brief Execute a measurement update step. */
-	void Update( const ObservationVector& z ) { Update( z, R ); }
+	void Update( const ObservationVector& y ) { Update( y, R ); }
 
 	/*! \brief Execute a measurement update with a prescribed covariance. */
-	void Update( const ObservationVector& z, const ObservationCovariance& r )
+	void Update( const ObservationVector& y, const ObservationCovariance& r )
 	{
-		ObservationVector yres = z - C*x;
-		ObservationCovariance Sres = C*S*C.transpose() + r;
-		Eigen::ColPivHouseholderQR<ObservationCovariance> dec( Sres.transpose() );
-		ObservationMatrix K = dec.solve( C*S.transpose() ).transpose();
-		x = x + K*yres;
+		if( y.size() == 0 || C.size() == 0 )
+		{
+			throw std::runtime_error( "Kalman Filter: y or C are empty." );
+		}
+
+		ObservationVector z = y - C*x;
+		ObservationCovariance Z = C*S*C.transpose() + r;
+		Eigen::LDLT<ObservationCovariance> dec( Z );
+		ObservationMatrix K = dec.solve( C*S ).transpose();
+		x = x + K*z;
 		S = ( StateCovariance::Identity() - K*C )*S;
 	}
 
@@ -106,4 +119,4 @@ protected:
 
 };
 
-} // end namespace argus_utils
+} // end namespace argus

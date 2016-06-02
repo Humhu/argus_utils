@@ -9,6 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(catkin REQUIRED 
 	COMPONENTS		roscpp
 					tf
+					argus_msgs
 					geometry_msgs
 )
 
@@ -31,12 +32,13 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
 	INCLUDE_DIRS 	include
-					${sophus_INCLUDE_DIRS}
+					# ${sophus_INCLUDE_DIRS}
 	
 	LIBRARIES 		argus_utils
 					
 	CATKIN_DEPENDS 	roscpp
 					tf
+					argus_msgs
 					geometry_msgs
 					
 	DEPENDS 		Boost
@@ -57,6 +59,7 @@ add_library( argus_utils
 	src/ParamUtils.cpp
 	src/PoseSE2.cpp
 	src/PoseSE3.cpp
+	src/MatrixUtils.cpp
 	src/Semaphore.cpp
 	src/WorkerPool.cpp
 	src/YamlUtils.cpp
@@ -68,13 +71,13 @@ target_link_libraries( argus_utils
 )
 
 add_executable( yaml_test tests/YamlTest.cpp )
-target_link_libraries( yaml_test argus_utils )
+target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} )
 
 add_executable( filter_test tests/FilterTest.cpp )
-target_link_libraries( filter_test argus_utils )
+target_link_libraries( filter_test argus_utils ${catkin_LIBRARIES} )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS argus_utils yaml_test filter_test
+install(TARGETS argus_utils yaml_test
 	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

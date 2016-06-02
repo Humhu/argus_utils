@@ -3,25 +3,24 @@
 #include <Eigen/Dense>
 #include <boost/function.hpp>
 
-namespace argus_utils
+namespace argus
 {
 
 // TODO Perhaps adopt std::function instead of boost
 // NOTE Setting certain template args to Dynamic does not work, ie. StateDim
 /*! \class ExtendedKalmanFilter ExtendedKalmanFilter.h
 * \brief A basic discrete-time Kalman filter with compile-time sizes. */
-template < typename Scalar = double,
-           int StateDim = Eigen::Dynamic,
+template < int StateDim = Eigen::Dynamic,
            int ControlDim = Eigen::Dynamic,
            int ObsDim = Eigen::Dynamic >
 class ExtendedKalmanFilter 
 {
 public:
 
-	typedef Eigen::Matrix<Scalar, StateDim, 1>          StateVector;
-	typedef Eigen::Matrix<Scalar, StateDim, StateDim>   StateCovariance;	
-	typedef Eigen::Matrix<Scalar, ControlDim, 1>        ControlVector;
-	typedef Eigen::Matrix<Scalar, StateDim, StateDim>   TransitionJacobian;
+	typedef Eigen::Matrix<double, StateDim, 1>          StateVector;
+	typedef Eigen::Matrix<double, StateDim, StateDim>   StateCovariance;	
+	typedef Eigen::Matrix<double, ControlDim, 1>        ControlVector;
+	typedef Eigen::Matrix<double, StateDim, StateDim>   TransitionJacobian;
 
 	typedef boost::function< StateVector
 	                         (const StateVector&, const ControlVector&) >
@@ -30,9 +29,9 @@ public:
 	                         (const StateVector&, const ControlVector&) > 
 	        TransitionJacobianFunction;
 	
-	typedef Eigen::Matrix<Scalar, ObsDim, 1>            ObservationVector;
-	typedef Eigen::Matrix<Scalar, ObsDim, ObsDim>       ObservationCovariance;
-	typedef Eigen::Matrix<Scalar, ObsDim, StateDim>     ObservationJacobian;
+	typedef Eigen::Matrix<double, ObsDim, 1>            ObservationVector;
+	typedef Eigen::Matrix<double, ObsDim, ObsDim>       ObservationCovariance;
+	typedef Eigen::Matrix<double, ObsDim, StateDim>     ObservationJacobian;
 	
 	typedef boost::function< ObservationVector (const StateVector&) >
 	        ObservationFunction;

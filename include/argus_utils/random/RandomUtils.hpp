@@ -4,7 +4,7 @@
 #include <boost/random/random_number_generator.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 
-namespace argus_utils
+namespace argus
 {
 	
 /*! \brief Boost-based reservoir sampling implementation. Best used when sampling

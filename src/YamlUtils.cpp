@@ -1,7 +1,7 @@
-#include "argus_utils/YamlUtils.h"
-#include "argus_utils/MatrixUtils.h"
+#include "argus_utils/utils/YamlUtils.h"
+#include "argus_utils/utils/MatrixUtils.h"
 
-namespace argus_utils
+namespace argus
 {
 
 // Needed because int strings like '0' do not convert to doubles automatically
@@ -331,4 +331,4 @@ bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat,
 
 }
 	
-} // end namespace argus_utils
+} // end namespace argus

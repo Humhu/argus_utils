@@ -1,8 +1,8 @@
-#include "argus_utils/PoseSE2.h"
-#include "argus_utils/PoseSE3.h"
+#include "argus_utils/geometry/PoseSE2.h"
+#include "argus_utils/geometry/PoseSE3.h"
 #include <cmath>
 
-namespace argus_utils
+namespace argus
 {
 
 	PoseSE2::PoseSE2() 
@@ -38,7 +38,7 @@ namespace argus_utils
 		: trans(se3.GetTranslation().x(), se3.GetTranslation().y()), rot(0.0) 
 	{
 		// Approximate projection by taking angular norm * z component
-		PoseSE3::Quaternion quat = se3.GetQuaternion();
+		QuaternionType quat = se3.GetQuaternion();
 		double alpha_2 = acos(quat.w());
 		if(sin(alpha_2) != 0.0) 
 		{

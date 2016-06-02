@@ -5,10 +5,10 @@
 
 #include <Eigen/Geometry>
 
-#include "argus_utils/PoseSE3.h"
-#include "argus_utils/GeometryUtils.h"
+#include "argus_utils/geometry/PoseSE3.h"
+#include "argus_utils/geometry/GeometryUtils.h"
 
-namespace argus_utils
+namespace argus
 {
 	
 /*! \brief Convert to/from the XmlRpc type used by ROS. */
@@ -42,10 +42,10 @@ YAML::Node SetPositionYaml( const Eigen::Translation3d& trans );
 bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans );
 
 // TODO Templatized fixed-size parser that calls this and checks dimensions
-/*! \brief Read/Write a matrix to the node */
+/*! \brief Read/Write a dynamically-sized matrix to the node */
 YAML::Node SetMatrixYaml( const Eigen::MatrixXd& mat, 
-						  std::string idDim = "dimensions", std::string idVal = "values" );
+                          std::string idDim = "dimensions", std::string idVal = "values" );
 bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat, 
-					std::string idDim = "dimensions", std::string idVal = "values" );
+                    std::string idDim = "dimensions", std::string idVal = "values" );
 	
-} // end namespace argus_utils
+} // end namespace argus

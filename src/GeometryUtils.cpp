@@ -1,12 +1,9 @@
-#include "argus_utils/GeometryUtils.h"
+#include "argus_utils/geometry/GeometryUtils.h"
 
-namespace argus_utils
+namespace argus
 {
-
-EulerAngles::EulerAngles( double y, double p, double r )
-	: yaw( y ), pitch( p ), roll( r ) {}
 	
-EulerAngles QuaternionToEuler( const Eigen::Quaterniond& quat )
+EulerAngles QuaternionToEuler( const QuaternionType& quat )
 {
 	double temp1, temp2;
 	double psi, theta, phi;
@@ -42,19 +39,19 @@ EulerAngles QuaternionToEuler( const Eigen::Quaterniond& quat )
 	return e;
 }
 
-Eigen::Quaterniond EulerToQuaternion( const EulerAngles& eul )
+QuaternionType EulerToQuaternion( const EulerAngles& eul )
 {
-	return Eigen::Quaterniond( Eigen::AngleAxisd(eul.yaw, Eigen::Vector3d::UnitZ())
-							   * Eigen::AngleAxisd(eul.pitch, Eigen::Vector3d::UnitY())
-							   * Eigen::AngleAxisd(eul.roll, Eigen::Vector3d::UnitX()) );
+	return QuaternionType( Eigen::AngleAxisd(eul.yaw, Eigen::Vector3d::UnitZ())
+                           * Eigen::AngleAxisd(eul.pitch, Eigen::Vector3d::UnitY())
+                           * Eigen::AngleAxisd(eul.roll, Eigen::Vector3d::UnitX()) );
 }
 
-Eigen::Quaterniond MsgToQuaternion( const geometry_msgs::Quaternion& msg )
+QuaternionType MsgToQuaternion( const geometry_msgs::Quaternion& msg )
 {
-	return Eigen::Quaterniond( msg.w, msg.x, msg.y, msg.z );
+	return QuaternionType( msg.w, msg.x, msg.y, msg.z );
 }
 
-geometry_msgs::Quaternion QuaternionToMsg( const Eigen::Quaterniond& quat )
+geometry_msgs::Quaternion QuaternionToMsg( const QuaternionType& quat )
 {
 	geometry_msgs::Quaternion msg;
 	msg.x = quat.x();
@@ -69,14 +66,14 @@ PoseSE3 TfToPose( const tf::Transform& trans )
 	tf::Vector3 translation = trans.getOrigin();
 	tf::Quaternion quat = trans.getRotation();
 	return PoseSE3( translation.getX(), translation.getY(), translation.getZ(),
-									   quat.w(), quat.x(), quat.y(), quat.z() );
+	                quat.w(), quat.x(), quat.y(), quat.z() );
 }
 
 tf::Transform PoseToTf( const PoseSE3& pose )
 {
-	PoseSE3::Quaternion quat = pose.GetQuaternion();
+	QuaternionType quat = pose.GetQuaternion();
 	tf::Quaternion tfQuat( quat.x(), quat.y(), quat.z(), quat.w() );
-	PoseSE3::Translation trans = pose.GetTranslation();
+	Translation3Type trans = pose.GetTranslation();
 	tf::Vector3 tfTrans( trans.x(), trans.y(), trans.z() );
 	return tf::Transform( tfQuat, tfTrans );
 }
@@ -85,7 +82,7 @@ geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
 {
 	geometry_msgs::Pose msg;
 	
-	PoseSE3::Translation trans = pose.GetTranslation();
+	Translation3Type trans = pose.GetTranslation();
 	msg.position.x = trans.x();
 	msg.position.y = trans.y();
 	msg.position.z = trans.z();
@@ -96,8 +93,8 @@ geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
 
 PoseSE3 MsgToPose( const geometry_msgs::Pose& msg )
 {
-	PoseSE3::Translation trans( msg.position.x, msg.position.y, msg.position.z );
-	PoseSE3::Quaternion quat = MsgToQuaternion( msg.orientation );
+	Translation3Type trans( msg.position.x, msg.position.y, msg.position.z );
+	QuaternionType quat = MsgToQuaternion( msg.orientation );
 	return PoseSE3( trans, quat );
 }
 
@@ -131,4 +128,4 @@ std::ostream& operator<<( std::ostream& os, const EulerAngles& eul )
 	return os;
 }
 
-} // end namespace argus_utils
+} // end namespace argus

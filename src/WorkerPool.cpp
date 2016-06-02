@@ -1,13 +1,10 @@
-#include "argus_utils/WorkerPool.h"
+#include "argus_utils/synchronization/WorkerPool.h"
 
-namespace argus_utils
+namespace argus
 {
 
-WorkerPool::WorkerPool()
-: numWorkers( 4 ), activeThreads( 0 ) {}
-	
 WorkerPool::WorkerPool( unsigned int n )
-: numWorkers( n ), activeThreads( 0 ) {}
+: _numWorkers( n ), _activeThreads( 0 ) {}
 	
 WorkerPool::~WorkerPool()
 {
@@ -16,34 +13,36 @@ WorkerPool::~WorkerPool()
 
 void WorkerPool::SetNumWorkers( unsigned int n )
 {
-	numWorkers = n;
+	_numWorkers = n;
 }
 
 void WorkerPool::EnqueueJob( Job job )
 {
-	jobQueue.push( job );
-	hasJobs.notify_one();
+	_jobQueue.push( job );
+	_hasJobs.notify_one();
 }
 
 void WorkerPool::StartWorkers()
 {
-	for( unsigned int i = 0; i < numWorkers; i++) {
-		workerThreads.create_thread( boost::bind( &WorkerPool::WorkerLoop, this ) );
+	for( unsigned int i = 0; i < _numWorkers; i++) 
+	{
+		_workerThreads.create_thread( boost::bind( &WorkerPool::WorkerLoop, 
+		                                           this ) );
 	}
 }
 
 void WorkerPool::StopWorkers()
 {
-	workerThreads.interrupt_all();
-	workerThreads.join_all();
+	_workerThreads.interrupt_all();
+	_workerThreads.join_all();
 }
 
 void WorkerPool::WaitOnJobs()
 {
-	Lock lock( mutex );
-	while( !jobQueue.empty() || activeThreads > 0 )
+	Lock lock( _mutex );
+	while( !_jobQueue.empty() || _activeThreads > 0 )
 	{
-		threadsDone.wait( lock );
+		_threadsDone.wait( lock );
 	}
 }
 
@@ -55,26 +54,26 @@ void WorkerPool::WorkerLoop()
 			boost::this_thread::interruption_point();
 
 			// Reacquire lock to allow other threads a chance
-			Lock lock( mutex );
+			Lock lock( _mutex );
 			
 			// Wait on a job here
-			while( jobQueue.empty() )
+			while( _jobQueue.empty() )
 			{
-				hasJobs.wait( lock );
+				_hasJobs.wait( lock );
 			}
 			
-			activeThreads++;
-			Job job = jobQueue.front();
-			jobQueue.pop();
+			_activeThreads++;
+			Job job = _jobQueue.front();
+			_jobQueue.pop();
 			lock.unlock();
 			
 			job();
 			
 			lock.lock();
-			activeThreads--;
-			if( activeThreads == 0 )
+			_activeThreads--;
+			if( _activeThreads == 0 )
 			{
-				threadsDone.notify_all();
+				_threadsDone.notify_all();
 			}
 		}
 	}

@@ -1,6 +1,6 @@
-#include "argus_utils/Semaphore.h"
+#include "argus_utils/synchronization/Semaphore.h"
 
-namespace argus_utils
+namespace argus
 {
 
 Semaphore::Semaphore( int startCounter )

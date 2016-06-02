@@ -4,7 +4,11 @@
 #include <boost/array.hpp>
 #include <cassert>
 
-namespace argus_utils
+#include "argus_utils/ArgusTypes.h"
+#include <argus_msgs/MatrixFloat64.h>
+#include <argus_msgs/SymmetricFloat64.h>
+
+namespace argus
 {
 
 enum MatrixStorageOrder
@@ -12,6 +16,17 @@ enum MatrixStorageOrder
 	RowMajor = 0,
 	ColMajor
 };
+
+/*! \brief Conversion to and from the MatrixFloat64 message type. */
+MatrixType MsgToMatrix( const argus_msgs::MatrixFloat64& msg );
+argus_msgs::MatrixFloat64 MatrixToMsg( const MatrixType& mat );
+
+// TODO Implement!
+/*! \brief Conversion to and from the SymmetricFloat64 message type. 
+ * Takes the lower triangle and assumes it is symmetric. */
+MatrixType MsgToSymmetric( const argus_msgs::SymmetricFloat64& msg );
+argus_msgs::SymmetricFloat64 SymmetricTOMsg( const MatrixType& mat );
+
 
 // Generic parsing - requires that mat have set dimensions
 template <typename Derived, typename Scalar>
@@ -110,7 +125,7 @@ bool ParseSymmetricMatrix( const boost::array<Scalar,N>& data,
 template <typename Derived, typename Scalar>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
                       Scalar* dst,
-                      int order = RowMajor )
+                      MatrixStorageOrder order = ColMajor )
 {
 
 	unsigned int ind = 0;
@@ -136,7 +151,10 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 			}
 		}
 	}
-	else { return false; }
+	else 
+	{
+		throw std::runtime_error( "SerializeMatrix: Invalid storage order." );
+	}
 	return true;
 }
 
@@ -144,7 +162,7 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 template <typename Derived, typename Scalar>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
                       std::vector<Scalar>& dst,
-                      int order = RowMajor )
+                      MatrixStorageOrder order = ColMajor )
 {
 	dst.resize( mat.rows()*mat.cols() );
 	
@@ -155,7 +173,7 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
 template <typename Derived, typename Scalar, unsigned long N>
 bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat, 
                       boost::array<Scalar, N>& dst,
-                      int order = RowMajor )
+                      MatrixStorageOrder order = ColMajor )
 {
 	if( mat.rows()*mat.cols() != N ) { return false; }
 	
@@ -256,4 +274,4 @@ bool PutSubmatrix( Eigen::DenseBase<DerivedIn>& mat,
 	return true; // TODO Get rid of these useless bools
 }
 
-} // end namespace argus_utils
+} // end namespace argus

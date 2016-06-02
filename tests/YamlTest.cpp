@@ -1,8 +1,8 @@
 #include <ros/ros.h>
-#include "argus_utils/YamlUtils.h"
+#include "argus_utils/utils/YamlUtils.h"
 #include <yaml-cpp/yaml.h>
 
-using namespace argus_utils;
+using namespace argus;
 
 void ConversionTest()
 {

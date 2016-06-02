@@ -2,11 +2,14 @@
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include "argus_utils/synchronization/SynchronizationTypes.h"
 
-namespace argus_utils {
+namespace argus 
+{
 
 /*! \brief A standard semaphore class. */
-class Semaphore {
+class Semaphore 
+{
 public:
 
 	Semaphore( int startCounter = 0 );
@@ -22,12 +25,9 @@ public:
 	
 protected:
 
-	typedef boost::shared_mutex Mutex;
-	typedef boost::condition_variable_any Condition;
-	
 	mutable Mutex mutex;
 	int counter;
-	Condition hasCounters;
+	ConditionVariable hasCounters;
 	
 };
 

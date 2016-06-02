@@ -6,7 +6,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
 
-namespace argus_utils 
+namespace argus 
 {
 
 /*! \brief Find the closest item in a map whose key is lower than the specified.
@@ -59,4 +59,4 @@ std::set<Key> make_set( const std::vector<Key>& vec )
 	return span;
 }
 
-} // end namespace argus_utils
+} // end namespace argus

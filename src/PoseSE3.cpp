@@ -1,10 +1,10 @@
-#include "argus_utils/PoseSE3.h"
-#include "argus_utils/PoseSE2.h"
-#include "argus_utils/GeometryUtils.h"
+#include "argus_utils/geometry/PoseSE3.h"
+#include "argus_utils/geometry/PoseSE2.h"
+#include "argus_utils/geometry/GeometryUtils.h"
 
 #include <cmath>
 
-namespace argus_utils 
+namespace argus 
 {
 
 PoseSE3::PoseSE3()
@@ -12,98 +12,131 @@ PoseSE3::PoseSE3()
 	
 PoseSE3::PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz )
 {
-	Quaternion quat( qw, qx, qy, qz );
+	QuaternionType quat( qw, qx, qy, qz );
 	quat.normalize();
-	Translation trans( x, y, z );
-	Translation zero( 0, 0, 0 );
-	tform = trans*(quat*zero);
+	Translation3Type trans( x, y, z );
+	Translation3Type zero( 0, 0, 0 );
+	_tform = trans*(quat*zero);
 }
 
 PoseSE3::PoseSE3( const Transform& t ) 
-	: tform( t ) 
+	: _tform( t ) 
 {}
 
-PoseSE3::PoseSE3( const Matrix& mat ) 
-	: tform( mat ) 
-{}
-
-PoseSE3::PoseSE3( const Translation& t, const Quaternion& q ) 
+PoseSE3::PoseSE3( const MatrixType& mat ) 
 {
-	Translation trans( t );
-	Quaternion quat( q );
+	if( mat.rows() == 3 && mat.cols() == 3 )
+	{
+		FromMat3( FixedMatrixType<3,3>( mat ) );
+	}
+	if( mat.rows() == 4 || mat.cols() == 4 )
+	{
+		FromMat4( FixedMatrixType<4,4>( mat ) );
+	}
+	else
+	{
+		throw std::runtime_error( "PoseSE3: Invalid matrix input." );
+	}
+}
+
+PoseSE3::PoseSE3( const FixedMatrixType<4,4>& mat ) 
+{
+	FromMat4( mat );
+}
+
+PoseSE3::PoseSE3( const FixedMatrixType<3,3>& rot )
+{
+	FromMat3( rot );
+}
+
+void PoseSE3::FromMat4( const FixedMatrixType<4,4>& mat )
+{
+	_tform = Transform( mat );
+}
+
+void PoseSE3::FromMat3( const FixedMatrixType<3,3>& rot )
+{
+	_tform = Transform( Translation3Type( 0, 0, 0 ) * QuaternionType( rot ) );
+}
+
+PoseSE3::PoseSE3( const Translation3Type& t, const QuaternionType& q ) 
+{
+	Translation3Type trans( t );
+	QuaternionType quat( q );
 	quat.normalize();
-	Translation zero(0,0,0);
+	Translation3Type zero(0,0,0);
 	Transform qTrans = quat*zero;
-	tform = trans*qTrans;
+	_tform = trans*qTrans;
 }
 
 PoseSE3::PoseSE3( const PoseSE2& se2 ) 
 {
-	Quaternion quat( Eigen::AngleAxisd(se2.rot.angle(), Eigen::Vector3d::UnitZ()) );
-	Translation trans(se2.trans.x(), se2.trans.y(), 0.0);
-	Translation zero(0,0,0);
+	QuaternionType quat( Eigen::AngleAxisd(se2.rot.angle(), Eigen::Vector3d::UnitZ()) );
+	Translation3Type trans(se2.trans.x(), se2.trans.y(), 0.0);
+	Translation3Type zero(0,0,0);
 	Transform qTrans = quat*zero;
-	tform = trans*qTrans;
+	_tform = trans*qTrans;
 }
 
-PoseSE3::Translation PoseSE3::GetTranslation() const 
+Translation3Type PoseSE3::GetTranslation() const 
 {
-	return Translation( tform.translation() );
+	return Translation3Type( _tform.translation() );
 }
 
-PoseSE3::Quaternion PoseSE3::GetQuaternion() const 
+QuaternionType PoseSE3::GetQuaternion() const 
 {
-	Quaternion quat( tform.linear() );
+	QuaternionType quat( _tform.linear() );
 	quat.normalize();
 	return quat;
 }
 
-PoseSE3::Vector PoseSE3::ToVector() const 
+FixedVectorType<7> PoseSE3::ToVector() const 
 {
-	Vector v;
-	Transform::ConstTranslationPart trans = tform.translation();
-	Quaternion quat = GetQuaternion();
+	FixedVectorType<7> v;
+	Transform::ConstTranslationPart trans = _tform.translation();
+	QuaternionType quat = GetQuaternion();
 	v << trans(0), trans(1), trans(2), quat.w(), quat.x(), quat.y(), quat.z();
 	return v;
 }
 
 PoseSE3::Transform PoseSE3::ToTransform() const 
 {
-	// This forces the composition of translation and quat to produce an isometry
-	// as only quaternion right multiplication produces an isometry.
-	return tform;
+	return _tform;
 }
 
 PoseSE3 PoseSE3::Inverse() const 
 {
-	PoseSE3 ret( tform.inverse() );
+	PoseSE3 ret( _tform.inverse() );
 	return ret;
 }
 
 PoseSE3 PoseSE3::Exp( const PoseSE3::TangentVector& tangent ) 
 {
-	PoseSE3::TranslationVector u = tangent.block<3,1>(0,0);
-	PoseSE3::AxisVector w = tangent.block<3,1>(3,0);
+	FixedVectorType<3> transVec = tangent.block<3,1>(0,0);
+	FixedVectorType<3> rotVec = tangent.block<3,1>(3,0);
 	
-	double theta = w.norm();
+	double theta = rotVec.norm();
 	SECoefficients coeffs( theta );
 	
-	PoseSE3::Quaternion::Matrix3 wx = cross_product_matrix(w);
-	PoseSE3::Quaternion::Matrix3 R = PoseSE3::Quaternion::Matrix3::Identity() + coeffs.a*wx + coeffs.b*wx*wx;
-	PoseSE3::Quaternion::Matrix3 V = PoseSE3::Quaternion::Matrix3::Identity() + coeffs.b*wx + coeffs.c*wx*wx;
-	PoseSE3::Matrix m = PoseSE3::Matrix::Identity();
-	m.block<3,3>(0,0) = R;
-	m.block<3,1>(0,3) = V*u;
+	QuaternionType::Matrix3 wx = cross_product_matrix(rotVec);
+	QuaternionType::Matrix3 R = QuaternionType::Matrix3::Identity() + coeffs.a*wx + coeffs.b*wx*wx;
+	QuaternionType::Matrix3 V = QuaternionType::Matrix3::Identity() + coeffs.b*wx + coeffs.c*wx*wx;
 	
-	PoseSE3 ret(m);
-	return ret;
+	// MatrixType m = MatrixType::Identity( 6, 6 );
+	// m.block<3,3>(0,0) = R;
+	// m.block<3,1>(0,3) = V*u;
+	// PoseSE3 ret(m);
+
+	QuaternionType rot( R );
+	Translation3Type trans( V*transVec );
+	return PoseSE3( trans, rot );
 }
 
 PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& pose ) 
 {
 	PoseSE3::Transform::LinearMatrixType R = pose.ToTransform().rotation();
 	
-	PoseSE3::AxisVector w;
+	FixedVectorType<3> w;
 	w << 0.5 * (R(2,1) - R(1,2)),
 	0.5 * (R(0,2) - R(2,0)),
 	0.5 * (R(1,0) - R(0,1));
@@ -163,10 +196,10 @@ PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& pose )
 	double theta = w.norm();
 	SECoefficients coeffs( theta );
 	
-	PoseSE3::Quaternion::Matrix3 wx = cross_product_matrix( w );
-	PoseSE3::Quaternion::Matrix3 V = PoseSE3::Quaternion::Matrix3::Identity() + coeffs.b*wx + coeffs.c*wx*wx;
-	PoseSE3::TranslationVector t = pose.GetTranslation().vector();
-	PoseSE3::TranslationVector u = V.partialPivLu().solve(t);
+	QuaternionType::Matrix3 wx = cross_product_matrix( w );
+	QuaternionType::Matrix3 V = QuaternionType::Matrix3::Identity() + coeffs.b*wx + coeffs.c*wx*wx;
+	FixedVectorType<3> t = pose.GetTranslation().vector();
+	FixedVectorType<3> u = V.partialPivLu().solve(t);
 	
 	PoseSE3::TangentVector v;
 	v.block<3,1>(0,0) = u;
@@ -177,10 +210,10 @@ PoseSE3::TangentVector PoseSE3::Log( const PoseSE3& pose )
 PoseSE3::AdjointMatrix PoseSE3::Adjoint( const PoseSE3& other )
 {
 	AdjointMatrix m = AdjointMatrix::Zero();
-	m.block<3,3>(0,0) = other.tform.linear();
-	m.block<3,3>(3,3) = other.tform.linear();
-	TranslationVector t = other.tform.translation();
-	m.block<3,3>(0,3) = cross_product_matrix( t ) * other.tform.linear();
+	m.block<3,3>(0,0) = other._tform.linear();
+	m.block<3,3>(3,3) = other._tform.linear();
+	FixedVectorType<3> t = other._tform.translation();
+	m.block<3,3>(0,3) = cross_product_matrix( t ) * other._tform.linear();
 	return m;
 }
 
@@ -210,8 +243,7 @@ PoseSE3 PoseSE3::operator/( const PoseSE3& other ) const
 
 std::ostream& operator<<(std::ostream& os, const PoseSE3& se3) 
 {
-	PoseSE3::Vector v = se3.ToVector();
-	os << v.transpose();
+	os << se3.ToVector().transpose();
 	return os;
 }
 
@@ -244,4 +276,4 @@ SECoefficients::SECoefficients( double theta )
 	}
 }
 	
-} // end namespace argus_utils
+} // end namespace argus

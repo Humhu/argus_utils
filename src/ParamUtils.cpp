@@ -1,24 +1,50 @@
-#include "argus_utils/ParamUtils.h"
-#include "argus_utils/YamlUtils.h"
+#include "argus_utils/utils/ParamUtils.h"
 
-namespace argus_utils
+namespace argus
 {
 
 template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, unsigned int& t )
+bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+                             unsigned int& t )
 {
 	int val;
-	if( !nh.getParam( name, val ) ) { return false; }
+	if( !nh.getParam( name, val ) ) 
+	{ 
+		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name );
+		return false; 
+	}
 	if( val < 0 )
 	{
-		ROS_WARN_STREAM( "Attempted to parse value " << val << " as unsigned int." );
+		ROS_ERROR_STREAM( "Attempted to parse value " << val << " as unsigned int." );
 		return false;
 	}
 	t = static_cast<unsigned int>( val );
 	return true;
 }
 
-bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, YAML::Node& node )
+template <>
+void GetParamDefault<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+                                    unsigned int& t, const unsigned int& def )
+{
+	int val;
+	if( !nh.getParam( name, val ) ) 
+	{ 
+		ROS_WARN_STREAM( "Could not retrieve parameter: " << name
+		                 << ". Using default value: " << def );
+		t = def;
+		return;
+	}
+	if( val < 0 )
+	{
+		ROS_ERROR_STREAM( "Attempted to parse value " << val << " as unsigned int." );
+		t = def;
+		return;
+	}
+	t = static_cast<unsigned int>( val );
+}
+
+bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, 
+                          YAML::Node& node )
 {
 	XmlRpc::XmlRpcValue xml;
 	if( !nh.getParam( name, xml ) ) { return false; }
@@ -26,7 +52,8 @@ bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, YAML::Node& nod
 	return true;
 }
 
-void SetYamlParam( ros::NodeHandle& nh, const std::string& name, const YAML::Node& node )
+void SetYamlParam( ros::NodeHandle& nh, const std::string& name, 
+                          const YAML::Node& node )
 {
 	XmlRpc::XmlRpcValue xml = YamlToXml( node );
 	nh.setParam( name, xml );
