@@ -1,6 +1,7 @@
 #pragma once
 
 #include "argus_utils/utils/LinalgTypes.h"
+#include "argus_utils/filters/FilterInfo.h"
 #include <Eigen/Cholesky>
 #include <boost/bind.hpp>
 #include <iostream>
@@ -104,12 +105,16 @@ public:
 
 	/*! \brief Perform a predict step where the derivatives are used
 	 * to integrate the forward pose. */
-	void Predict( const FullCovType& Q, double dt )
+	PredictInfo Predict( const FullCovType& Q, double dt )
 	{
 		FullVecType x;
 		x.template head<TangentDim>() = FixedVectorType<TangentDim>::Zero();
 		x.template tail<DerivsDim>() = _derivs;
 		
+		PredictInfo info;
+		info.Spre = _cov;
+		info.dt = dt;
+
 		// We use A first without the adjoint in the upper left block, but that 
 		// block does not affect the derivatives anyways
 		TransitionMatrix A = _tfunc( dt );
@@ -119,17 +124,20 @@ public:
 		_derivs = xup.template tail<DerivsDim>();
 		_pose = _pose * displacement;
 		_cov = A*_cov*A.transpose() + Q;
+
+		info.F = A;
+		return info;
 	}
 
-	void UpdateDerivs( const VectorType& obs, const DerivObsMatrix& C,
-	                   const MatrixType& R )
+	UpdateInfo UpdateDerivs( const VectorType& obs, const DerivObsMatrix& C,
+	                         const MatrixType& R )
 	{
 		unsigned int zDim = obs.size();
 		if( zDim != C.rows() ) 
 		{
 			throw std::runtime_error( "DerivativePoseFilter: Deriv update dimension mismatch." );
 		}
-		
+
 		DerivsType v = obs - C*_derivs;
 
 		FullObsMatrix Cfull( zDim, CovarianceDim );
@@ -143,12 +151,19 @@ public:
 		TangentType poseCorrection = correction.template head<TangentDim>();
 		DerivsType derivsCorrection = correction.template tail<DerivsDim>();
 
+		UpdateInfo info;
+		info.Spre = _cov;
+		info.innovation = v;
+		info.H = Cfull;
+
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;
 		_cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
+
+		return info;
 	}
 
-	void UpdatePose( const PoseType& obs, const PoseObsCovType& R )
+	UpdateInfo UpdatePose( const PoseType& obs, const PoseObsCovType& R )
 	{
 		PoseObsMatrix Cfull;
 		Cfull.template leftCols<TangentDim>() = FixedMatrixType<TangentDim,TangentDim>::Identity();
@@ -163,9 +178,16 @@ public:
 		TangentType poseCorrection = correction.template head<TangentDim>();
 		DerivsType derivsCorrection = correction.template tail<DerivsDim>();
 
+		UpdateInfo info;
+		info.Spre = _cov;
+		info.innovation = v;
+		info.H = Cfull;
+
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;
 		_cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
+
+		return info;
 	}
 
 private:

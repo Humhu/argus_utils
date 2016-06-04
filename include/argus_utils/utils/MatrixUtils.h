@@ -25,7 +25,7 @@ argus_msgs::MatrixFloat64 MatrixToMsg( const MatrixType& mat );
 /*! \brief Conversion to and from the SymmetricFloat64 message type. 
  * Takes the lower triangle and assumes it is symmetric. */
 MatrixType MsgToSymmetric( const argus_msgs::SymmetricFloat64& msg );
-argus_msgs::SymmetricFloat64 SymmetricTOMsg( const MatrixType& mat );
+argus_msgs::SymmetricFloat64 SymmetricToMsg( const MatrixType& mat );
 
 
 // Generic parsing - requires that mat have set dimensions
