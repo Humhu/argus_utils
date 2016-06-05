@@ -67,7 +67,7 @@ bool GetMatrixParam( ros::NodeHandle& nh, const std::string& name,
                      Eigen::DenseBase<Derived>& mat )
 {
 	std::vector<Scalar> values;
-	GetParam( nh, name, values );
+	if( !GetParam( nh, name, values ) ) { return false; }
 	if( !ParseMatrix( values, mat ) )
 	{
 		ROS_ERROR_STREAM( "Could not parse values from " << name
@@ -83,7 +83,7 @@ bool GetDiagonalParam( ros::NodeHandle& nh, const std::string& name,
                        Eigen::DenseBase<Derived>& mat )
 {
 	std::vector<Scalar> values;
-	GetParam( nh, name, values );
+	if( !GetParam( nh, name, values ) ) { return false; }
 	unsigned int minDim = std::min( mat.rows(), mat.cols() );
 	if( values.size() != minDim ) { return false;}
 	
