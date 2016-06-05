@@ -4,8 +4,8 @@ namespace argus
 {
 
 template <>
-void GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                             unsigned int& t )
+void GetParamRequired<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+                                     unsigned int& t )
 {
 	int val;
 	if( !nh.getParam( name, val ) ) 

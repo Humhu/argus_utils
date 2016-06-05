@@ -8,22 +8,32 @@ namespace argus
 {
 
 
+template <typename T>
+bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+{
+	if( !nh.getParam( name, t ) ) 
+	{ 
+		ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
+		return false;
+	}
+	return true;
+}
+
+template <>
+bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+                             unsigned int& t );
+
 /*! \brief Retrieve a parameter from the ROS parameter server. Print an error
  * if the parameter retrieval fails. Has a specialization for unsigned ints
  * that checks to make sure the int value is > 0. */
 template <typename T>
-void GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+void GetParamRequired( ros::NodeHandle& nh, const std::string& name, T& t )
 {
-	if( !nh.getParam( name, t ) ) 
+	if( !GetParam( nh, name, t ) ) 
 	{ 
-		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name );
-		throw std::runtime_error( "Could not retrieve parameter: " + name );
+		throw std::runtime_error( "Could not retrieve required parameter: " + name );
 	}
 }
-
-template <>
-void GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                             unsigned int& t );
 
 /*! \brief Retreive a parameter from the ROS parameter server. Returns the
  * specified default if the parameter retrieval fails. Has a specialization
