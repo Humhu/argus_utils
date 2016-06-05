@@ -47,6 +47,8 @@ catkin_package(
 #                   sophus_external
 )
 
+catkin_python_setup()
+
 include_directories( include
                      ${Boost_INCLUDE_DIRS}
                      ${EIGEN3_INCLUDE_DIR}

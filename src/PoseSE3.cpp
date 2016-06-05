@@ -10,7 +10,20 @@ namespace argus
 PoseSE3::PoseSE3()
 : PoseSE3( 0, 0, 0, 1, 0, 0, 0 ) {}
 	
-PoseSE3::PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz )
+PoseSE3::PoseSE3( double x, double y, double z, double qw, 
+                  double qx, double qy, double qz )
+{
+	FromTerms( x, y, z, qw, qx, qy, qz );
+}
+
+PoseSE3::PoseSE3( const VectorType& vec ) 
+{
+	FromTerms( vec(0), vec(1), vec(2), vec(3), vec(4),
+	           vec(5), vec(6) );
+}
+
+void PoseSE3::FromTerms( double x, double y, double z, double qw,
+                         double qx, double qy, double qz )
 {
 	QuaternionType quat( qw, qx, qy, qz );
 	quat.normalize();
@@ -20,8 +33,7 @@ PoseSE3::PoseSE3( double x, double y, double z, double qw, double qx, double qy,
 }
 
 PoseSE3::PoseSE3( const Transform& t ) 
-	: _tform( t ) 
-{}
+: _tform( t ) {}
 
 PoseSE3::PoseSE3( const MatrixType& mat ) 
 {

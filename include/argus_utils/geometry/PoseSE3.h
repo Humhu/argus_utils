@@ -42,6 +42,9 @@ public:
 	/*! \brief Creates an SE3 object with the specified values. */
 	PoseSE3( double x, double y, double z, double qw, double qx, double qy, double qz );
 
+	/*! \brief Creates an SE3 object from a vector [x,y,z,qw,qx,qy,qz] */
+	explicit PoseSE3( const VectorType& vec );
+
 	/*! \brief Creates an SE3 object from an Eigen transform. */
 	explicit PoseSE3( const Transform& trans );
 
@@ -80,7 +83,17 @@ public:
 	PoseSE3 operator-() const;
 	PoseSE3 operator*( const PoseSE3& other ) const;
 	PoseSE3 operator/( const PoseSE3& other ) const;
-	
+
+	template <typename Derived>
+	void FromVector( const Eigen::DenseBase<Derived>& vec )
+	{
+		if( vec.size() != 7 )
+		{
+			throw std::runtime_error( "PoseSE3: Need 7 elements to populate." );
+		}
+		FromTerms( vec(0), vec(1), vec(2), vec(3), vec(4), vec(5), vec(6) );
+	}
+
 protected:
 
 	Transform _tform;
@@ -90,6 +103,8 @@ protected:
 	/*! \brief Initialize this SE3 object from a 4x4 homogeneous matrix. */
 	void FromMat4( const FixedMatrixType<4,4>& mat );
 
+	void FromTerms( double x, double y, double z, double qw, double qx, 
+	                double qy, double qz );
 };
 
 std::ostream& operator<<( std::ostream& os, const PoseSE3& se3 );

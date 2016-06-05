@@ -4,22 +4,21 @@ namespace argus
 {
 
 template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+void GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
                              unsigned int& t )
 {
 	int val;
 	if( !nh.getParam( name, val ) ) 
 	{ 
 		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name );
-		return false; 
+		throw std::runtime_error( "Could not retrieve parameter: " + name );
 	}
 	if( val < 0 )
 	{
 		ROS_ERROR_STREAM( "Attempted to parse value " << val << " as unsigned int." );
-		return false;
+		throw std::runtime_error( "Attempted to parse negative value as unsigned int." );
 	}
 	t = static_cast<unsigned int>( val );
-	return true;
 }
 
 template <>

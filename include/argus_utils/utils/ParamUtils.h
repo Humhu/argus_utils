@@ -12,18 +12,17 @@ namespace argus
  * if the parameter retrieval fails. Has a specialization for unsigned ints
  * that checks to make sure the int value is > 0. */
 template <typename T>
-bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+void GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
 {
 	if( !nh.getParam( name, t ) ) 
 	{ 
 		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name );
-		return false; 
+		throw std::runtime_error( "Could not retrieve parameter: " + name );
 	}
-	return true;
 }
 
 template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+void GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
                              unsigned int& t );
 
 /*! \brief Retreive a parameter from the ROS parameter server. Returns the
@@ -58,7 +57,7 @@ bool GetMatrixParam( ros::NodeHandle& nh, const std::string& name,
                      Eigen::DenseBase<Derived>& mat )
 {
 	std::vector<Scalar> values;
-	if( !GetParam( nh, name, values ) );
+	GetParam( nh, name, values );
 	if( !ParseMatrix( values, mat ) )
 	{
 		ROS_ERROR_STREAM( "Could not parse values from " << name
@@ -68,7 +67,24 @@ bool GetMatrixParam( ros::NodeHandle& nh, const std::string& name,
 	}
 	return true;
 }
+
+template <typename Scalar, typename Derived>
+bool GetDiagonalParam( ros::NodeHandle& nh, const std::string& name, 
+                       Eigen::DenseBase<Derived>& mat )
+{
+	std::vector<Scalar> values;
+	GetParam( nh, name, values );
+	unsigned int minDim = std::min( mat.rows(), mat.cols() );
+	if( values.size() != minDim ) { return false;}
 	
+	mat.setZero();
+	for( unsigned int ind = 0; ind < minDim; ++ind )
+	{
+		mat(ind,ind) = values[ind];
+	}
+	return true;
+}
+
 }
 
 
