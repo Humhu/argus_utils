@@ -70,9 +70,9 @@ bool GetMatrixParam( ros::NodeHandle& nh, const std::string& name,
 	if( !GetParam( nh, name, values ) ) { return false; }
 	if( !ParseMatrix( values, mat ) )
 	{
-		ROS_ERROR_STREAM( "Could not parse values from " << name
-		                  << " into " << mat.rows() << " by " << mat.cols()
-		                  << " matrix." );
+		ROS_WARN_STREAM( "Could not parse values from " << name
+		                 << " into " << mat.rows() << " by " << mat.cols()
+		                 << " matrix." );
 		return false;
 	}
 	return true;
@@ -85,7 +85,12 @@ bool GetDiagonalParam( ros::NodeHandle& nh, const std::string& name,
 	std::vector<Scalar> values;
 	if( !GetParam( nh, name, values ) ) { return false; }
 	unsigned int minDim = std::min( mat.rows(), mat.cols() );
-	if( values.size() != minDim ) { return false;}
+	if( values.size() != minDim ) 
+	{ 
+	  ROS_WARN_STREAM( "Could not parse values from " << name
+			   << " into " << minDim << " diagonal matrix." );
+	  return false;
+	}
 	
 	mat.setZero();
 	for( unsigned int ind = 0; ind < minDim; ++ind )
