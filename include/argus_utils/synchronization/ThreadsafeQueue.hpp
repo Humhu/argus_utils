@@ -23,6 +23,22 @@ public:
 		_items.clear();
 	}
 
+	template< class... Args>
+	void EmplaceBack( Args&&... args )
+	{
+		WriteLock lock( _mutex );
+		_items.emplace_back( args... );
+		_hasContents.notify_one();
+	}
+
+	template< class... Args>
+	void EmplaceFront( Args&&... args )
+	{
+		WriteLock lock( _mutex );
+		_items.emplace_front( args... );
+		_hasContents.notify_one();
+	}
+
 	void PushFront( const T& item )
 	{
 		WriteLock lock( _mutex );
@@ -129,7 +145,15 @@ public:
 		{
 			_isEmpty.wait( lock );
 		}
-		
+	}
+
+	void WaitHasContents()
+	{
+		WriteLock lock( _mutex );
+		while( _items.empty() )
+		{
+			_hasContents.wait( lock );
+		}
 	}
 
 protected:

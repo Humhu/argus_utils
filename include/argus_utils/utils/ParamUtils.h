@@ -48,8 +48,7 @@ void GetParam( ros::NodeHandle& nh, const std::string& name, T& t,
 {
 	if( !GetParam( nh, name, t ) ) 
 	{ 
-		ROS_WARN_STREAM( "Could not retrieve parameter: " << name
-		                  << ". Using default value: " << def );
+		ROS_WARN_STREAM( "Parameter: " << name << " will use default: " << def );
 		t = def;
 	}
 }

@@ -8,11 +8,7 @@ bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name,
                              unsigned int& t )
 {
 	int val;
-	if( !GetParam<int>( nh, name, val ) ) 
-	{ 
-		ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
-		return false; 
-	}
+	if( !GetParam<int>( nh, name, val ) ) { return false; }
 
 	if( val < 0 )
 	{
@@ -32,11 +28,7 @@ bool GetParam<double>( ros::NodeHandle& nh, const std::string& name,
 	{
 		// If not, see if it's a string that we can convert
 		std::string valS;
-		if( !GetParam<std::string>( nh, name, valS ) )
-		{
-			ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
-			return false;
-		}
+		if( !GetParam<std::string>( nh, name, valS ) ) { return false; }
 		try
 		{
 			t = std::stod( valS );
