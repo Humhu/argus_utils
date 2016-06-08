@@ -34,8 +34,12 @@ UpdateInfo MsgToUpdate( const argus_msgs::FilterStepInfo& msg )
 	}
 	UpdateInfo info;
 	info.Spre = MsgToMatrix( msg.Spre );
-	ParseMatrix( msg.innovation, info.innovation );
 	info.H = MsgToMatrix( msg.H );
+
+	// NOTE Must initialize size or else parsing fails
+	// TODO Update this parse function interface to avoid these kinds of errors in the future
+	info.innovation = VectorType( info.H.rows() );
+	ParseMatrix( msg.innovation, info.innovation );
 	return info;
 }
 

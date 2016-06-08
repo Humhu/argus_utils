@@ -78,6 +78,11 @@ tf::Transform PoseToTf( const PoseSE3& pose )
 	return tf::Transform( tfQuat, tfTrans );
 }
 
+geometry_msgs::Pose PoseToMsg( const PoseSE2& pose )
+{
+	return PoseToMsg( PoseSE3::FromSE2( pose ) );
+}
+
 geometry_msgs::Pose PoseToMsg( const PoseSE3& pose )
 {
 	geometry_msgs::Pose msg;
@@ -96,6 +101,18 @@ PoseSE3 MsgToPose( const geometry_msgs::Pose& msg )
 	Translation3Type trans( msg.position.x, msg.position.y, msg.position.z );
 	QuaternionType quat = MsgToQuaternion( msg.orientation );
 	return PoseSE3( trans, quat );
+}
+
+geometry_msgs::Twist TangentToMsg( const PoseSE2::TangentVector& tan )
+{
+	geometry_msgs::Twist twist;
+	twist.linear.x = tan(0);
+	twist.linear.y = tan(1);
+	twist.linear.z = 0;
+	twist.angular.x = 0;
+	twist.angular.y = 0;
+	twist.angular.z = tan(2);
+	return twist;
 }
 
 geometry_msgs::Twist TangentToMsg( const PoseSE3::TangentVector& tan )

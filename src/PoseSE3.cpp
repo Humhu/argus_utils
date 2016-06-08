@@ -81,13 +81,12 @@ PoseSE3::PoseSE3( const Translation3Type& t, const QuaternionType& q )
 	_tform = trans*qTrans;
 }
 
-PoseSE3::PoseSE3( const PoseSE2& se2 ) 
+PoseSE3 PoseSE3::FromSE2( const PoseSE2& se2 ) 
 {
-	QuaternionType quat( Eigen::AngleAxisd(se2.rot.angle(), Eigen::Vector3d::UnitZ()) );
-	Translation3Type trans(se2.trans.x(), se2.trans.y(), 0.0);
-	Translation3Type zero(0,0,0);
-	Transform qTrans = quat*zero;
-	_tform = trans*qTrans;
+	FixedVectorType<3> v = se2.ToVector();
+	QuaternionType quat( Eigen::AngleAxisd( v(2), Eigen::Vector3d::UnitZ()) );
+	Translation3Type trans( v(0), v(1), 0.0);
+	return PoseSE3( trans, quat );
 }
 
 Translation3Type PoseSE3::GetTranslation() const 
@@ -111,7 +110,7 @@ FixedVectorType<7> PoseSE3::ToVector() const
 	return v;
 }
 
-PoseSE3::Transform PoseSE3::ToTransform() const 
+const PoseSE3::Transform& PoseSE3::ToTransform() const 
 {
 	return _tform;
 }

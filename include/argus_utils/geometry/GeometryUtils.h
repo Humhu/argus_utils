@@ -6,6 +6,7 @@
 
 #include <tf/LinearMath/Transform.h> // From tf
 
+#include "argus_utils/geometry/PoseSE2.h"
 #include "argus_utils/geometry/PoseSE3.h"
 #include "argus_utils/ArgusTypes.h"
 
@@ -28,10 +29,12 @@ QuaternionType MsgToQuaternion( const geometry_msgs::Quaternion& msg );
 geometry_msgs::Quaternion QuaternionToMsg( const QuaternionType& q );
 
 // Convert between geometry_msgs::Pose message and PoseSE3 objects
+geometry_msgs::Pose PoseToMsg( const PoseSE2& pose );
 geometry_msgs::Pose PoseToMsg( const PoseSE3& pose );
 PoseSE3 MsgToPose( const geometry_msgs::Pose& msg );
 
 // Convert between geometry_msgs::Twist message and PoseSE3::TangentVector
+geometry_msgs::Twist TangentToMsg( const PoseSE2::TangentVector& tan );
 geometry_msgs::Twist TangentToMsg( const PoseSE3::TangentVector& tan );
 PoseSE3::TangentVector MsgToTangent( const geometry_msgs::Twist& twist );
 
