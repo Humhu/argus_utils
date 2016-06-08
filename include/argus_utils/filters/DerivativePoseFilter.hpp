@@ -138,7 +138,7 @@ public:
 			throw std::runtime_error( "DerivativePoseFilter: Deriv update dimension mismatch." );
 		}
 
-		DerivsType v = obs - C*_derivs;
+		VectorType v = obs - C*_derivs;
 
 		FullObsMatrix Cfull( zDim, CovarianceDim );
 		Cfull.template leftCols<TangentDim>() = WidthFixedMatrixType<TangentDim>::Zero( TangentDim, zDim );
