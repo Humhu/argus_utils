@@ -23,6 +23,10 @@ template <>
 bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
                              unsigned int& t );
 
+template <>
+bool GetParam<double>( ros::NodeHandle& nh, const std::string& name, 
+                       double& t );
+
 /*! \brief Retrieve a parameter from the ROS parameter server. Print an error
  * if the parameter retrieval fails. Has a specialization for unsigned ints
  * that checks to make sure the int value is > 0. */
@@ -39,20 +43,16 @@ void GetParamRequired( ros::NodeHandle& nh, const std::string& name, T& t )
  * specified default if the parameter retrieval fails. Has a specialization
  * for unsigned ints that checks to make sure the int value is > 0. */
 template <typename T>
-void GetParamDefault( ros::NodeHandle& nh, const std::string& name, T& t, 
-                      const T& def )
+void GetParam( ros::NodeHandle& nh, const std::string& name, T& t, 
+               const T& def )
 {
-	if( !nh.getParam( name, t ) ) 
+	if( !GetParam( nh, name, t ) ) 
 	{ 
-		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name
+		ROS_WARN_STREAM( "Could not retrieve parameter: " << name
 		                  << ". Using default value: " << def );
 		t = def;
 	}
 }
-
-template <>
-void GetParamDefault<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                                    unsigned int& t, const unsigned int& def );
 
 /*! \brief Get/set a parameter YAML object out of a node handle by combining calls
  * to get XmlRpc and convert it. Returns success. */

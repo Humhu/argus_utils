@@ -4,42 +4,50 @@ namespace argus
 {
 
 template <>
-void GetParamRequired<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                                     unsigned int& t )
+bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+                             unsigned int& t )
 {
 	int val;
-	if( !nh.getParam( name, val ) ) 
+	if( !GetParam<int>( nh, name, val ) ) 
 	{ 
-		ROS_ERROR_STREAM( "Could not retrieve parameter: " << name );
-		throw std::runtime_error( "Could not retrieve parameter: " + name );
+		ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
+		return false; 
 	}
+
 	if( val < 0 )
 	{
-		ROS_ERROR_STREAM( "Attempted to parse value " << val << " as unsigned int." );
-		throw std::runtime_error( "Attempted to parse negative value as unsigned int." );
+		ROS_WARN_STREAM( "Attempted to parse value " << val << " as unsigned int." );
+		return false;
 	}
 	t = static_cast<unsigned int>( val );
+	return true;
 }
 
 template <>
-void GetParamDefault<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                                    unsigned int& t, const unsigned int& def )
+bool GetParam<double>( ros::NodeHandle& nh, const std::string& name,
+                       double& t )
 {
-	int val;
-	if( !nh.getParam( name, val ) ) 
-	{ 
-		ROS_WARN_STREAM( "Could not retrieve parameter: " << name
-		                 << ". Using default value: " << def );
-		t = def;
-		return;
-	}
-	if( val < 0 )
+	// First see if normal double retrieval works
+	if( !nh.getParam( name, t ) )
 	{
-		ROS_ERROR_STREAM( "Attempted to parse value " << val << " as unsigned int." );
-		t = def;
-		return;
+		// If not, see if it's a string that we can convert
+		std::string valS;
+		if( !GetParam<std::string>( nh, name, valS ) )
+		{
+			ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
+			return false;
+		}
+		try
+		{
+			t = std::stod( valS );
+		}
+		catch( std::exception e ) 
+		{
+			ROS_WARN_STREAM( "Parameter " << valS << " could not be interpreted as a double." );
+			return false;
+		}
 	}
-	t = static_cast<unsigned int>( val );
+	return true;
 }
 
 bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, 
