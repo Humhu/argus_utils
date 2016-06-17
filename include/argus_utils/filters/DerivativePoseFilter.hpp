@@ -114,6 +114,7 @@ public:
 		PredictInfo info;
 		info.Spre = _cov;
 		info.dt = dt;
+		info.Q = Q;
 
 		// We use A first without the adjoint in the upper left block, but that 
 		// block does not affect the derivatives anyways
@@ -155,6 +156,7 @@ public:
 		info.Spre = _cov;
 		info.innovation = v;
 		info.H = Cfull;
+		info.R = R;
 
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;

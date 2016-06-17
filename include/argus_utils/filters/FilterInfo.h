@@ -12,6 +12,7 @@ struct PredictInfo
 	MatrixType Spre; // State covariance before predict step
 	double dt; // The predict time step size
 	MatrixType F; // Matrix used to propagate covariance
+	MatrixType Q; // The Q matrix used in this step
 };
 
 /*! \brief Information from a filter update step used to learn 
@@ -21,6 +22,7 @@ struct UpdateInfo
 	MatrixType Spre; // State covariance before update
 	VectorType innovation; // Observation prediction error
 	MatrixType H; // Matrix used to map state covariance to observation
+	MatrixType R; // The R matrix used in this step
 };
 
 }
