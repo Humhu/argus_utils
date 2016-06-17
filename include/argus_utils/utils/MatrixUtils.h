@@ -17,6 +17,7 @@ enum MatrixStorageOrder
 	ColMajor
 };
 
+// TODO Move this into argus_msgs so we don't have a weird dependency!!
 /*! \brief Conversion to and from the MatrixFloat64 message type. */
 MatrixType MsgToMatrix( const argus_msgs::MatrixFloat64& msg );
 argus_msgs::MatrixFloat64 MatrixToMsg( const MatrixType& mat );
@@ -27,6 +28,14 @@ argus_msgs::MatrixFloat64 MatrixToMsg( const MatrixType& mat );
 MatrixType MsgToSymmetric( const argus_msgs::SymmetricFloat64& msg );
 argus_msgs::SymmetricFloat64 SymmetricToMsg( const MatrixType& mat );
 
+inline Eigen::Map<const VectorType> GetVectorView( const std::vector<double>& vec )
+{
+	return Eigen::Map<const VectorType>( vec.data(), vec.size() );
+}
+inline Eigen::Map<VectorType> GetVectorView( std::vector<double>& vec )
+{
+	return Eigen::Map< VectorType>( vec.data(), vec.size() );
+}
 
 // Generic parsing - requires that mat have set dimensions
 template <typename Derived, typename Scalar>
@@ -127,7 +136,6 @@ bool SerializeMatrix( const Eigen::DenseBase<Derived>& mat,
                       Scalar* dst,
                       MatrixStorageOrder order = ColMajor )
 {
-
 	unsigned int ind = 0;
 	if( order == RowMajor )
 	{

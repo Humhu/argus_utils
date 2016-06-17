@@ -13,6 +13,7 @@ PredictInfo MsgToPredict( const argus_msgs::FilterStepInfo& msg )
 	info.Spre = MsgToMatrix( msg.Spre );
 	info.dt = msg.dt;
 	info.F = MsgToMatrix( msg.F );
+	info.Q = MsgToMatrix( msg.noiseCov );
 	return info;
 }
 
@@ -22,6 +23,7 @@ argus_msgs::FilterStepInfo PredictToMsg( const PredictInfo& info )
 	msg.Spre = MatrixToMsg( info.Spre );
 	msg.dt = info.dt;
 	msg.F = MatrixToMsg( info.F );
+	msg.noiseCov = MatrixToMsg( info.Q );
 	msg.isPredict = true;
 	return msg;
 }
@@ -35,6 +37,7 @@ UpdateInfo MsgToUpdate( const argus_msgs::FilterStepInfo& msg )
 	UpdateInfo info;
 	info.Spre = MsgToMatrix( msg.Spre );
 	info.H = MsgToMatrix( msg.H );
+	info.R = MsgToMatrix( msg.noiseCov );
 
 	// NOTE Must initialize size or else parsing fails
 	// TODO Update this parse function interface to avoid these kinds of errors in the future
@@ -49,6 +52,7 @@ argus_msgs::FilterStepInfo UpdateToMsg( const UpdateInfo& info )
 	msg.Spre = MatrixToMsg( info.Spre );
 	SerializeMatrix( info.innovation, msg.innovation );
 	msg.H = MatrixToMsg( info.H );
+	msg.noiseCov = MatrixToMsg( info.R );
 	msg.isPredict = false;
 	return msg;
 }
