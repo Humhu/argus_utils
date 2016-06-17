@@ -11,6 +11,15 @@
 namespace argus
 {
 	
+template <typename Out>
+bool GetYamlField( const YAML::Node& yaml, const std::string& field,
+               Out& dst )
+{
+	if( !yaml[field] ) { return false; }
+	dst = yaml[field].as<Out>();
+	return true;
+}
+
 /*! \brief Convert to/from the XmlRpc type used by ROS. */
 // NOTE XmlRpc is awful to use and doesn't have a const iterator
 // TODO Robustify this function. It still fails on some instances
@@ -41,11 +50,8 @@ bool GetOrientationYaml( const YAML::Node& node, EulerAngles& eul );
 YAML::Node SetPositionYaml( const Eigen::Translation3d& trans );
 bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans );
 
-// TODO Templatized fixed-size parser that calls this and checks dimensions
-/*! \brief Read/Write a dynamically-sized matrix to the node */
-YAML::Node SetMatrixYaml( const Eigen::MatrixXd& mat, 
-                          std::string idDim = "dimensions", std::string idVal = "values" );
-bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat, 
-                    std::string idDim = "dimensions", std::string idVal = "values" );
+// TODO versions for column major?
+YAML::Node SetMatrixYaml( const MatrixType& mat );
+bool GetMatrixYaml( const YAML::Node& node, MatrixType& mat );
 	
 } // end namespace argus

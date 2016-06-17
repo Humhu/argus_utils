@@ -290,45 +290,35 @@ bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans )
 	return true;
 }
 
-YAML::Node SetMatrixYaml( const Eigen::MatrixXd& mat, 
-							std::string idDim, std::string idVal )
+YAML::Node SetMatrixYaml( const MatrixType& mat )
 {
-	unsigned int numEls = mat.rows()*mat.cols();
-	std::vector<double> vals( numEls );
-	std::vector<double> dimensions( 2 );
-	dimensions[0] = mat.rows();
-	dimensions[1] = mat.cols();
-	for( unsigned int i = 0; i < numEls; i++ )
-	{
-		vals[i] = mat(i);
-	}
 	YAML::Node node;
-	node[idVal] = vals;
-	node[idDim] = dimensions;
+	node["rows"] = mat.rows();
+	node["cols"] = mat.cols();
+	node["data"] = std::vector<double>( mat.data(), mat.data() + mat.size() );
+	node["column_major"] = true;
 	return node;
 }
 
-bool GetMatrixYaml( const YAML::Node& node, Eigen::MatrixXd& mat, 
-					std::string idDim, std::string idVal )
+bool GetMatrixYaml( const YAML::Node& node, MatrixType& mat )
 {
-	if( !node[idDim] || !node[idVal] ) { return false; }
-	std::vector<int> dimensions = node[idDim].as< std::vector<int> >();
-	std::vector<double> vals = node[idVal].as< std::vector<double> >();
-	if( dimensions.size() != 2 )
-	{
-		std::cerr << "Invalid matrix dimension field." << std::endl;
-		return false;
-	}
-	
-	if( dimensions[0]*dimensions[1] != vals.size() )
-	{
-		std::cerr << "Invalid number of values for matrix." << std::endl;
-		return false;
-	}
-	
-	mat = Eigen::MatrixXd( dimensions[0], dimensions[1] );
-	return ParseMatrix( vals, mat, RowMajor );
+	unsigned int rows, cols;
+	std::vector<double> values;
+	bool colMajor;
+	if( !GetYamlField( node, "column_major", colMajor )
+	 || !GetYamlField( node, "rows", rows )
+	 || !GetYamlField( node, "cols", cols )
+	 || !GetYamlField( node, "values", values ) ) { return false; }
 
+	if( colMajor )
+	{
+		mat = Eigen::Map<ColMatrixType>( values.data(), rows, cols );
+	}
+	else
+	{
+		mat = Eigen::Map<RowMatrixType>( values.data(), rows, cols );
+	}
+	return true;
 }
 	
 } // end namespace argus
