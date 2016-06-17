@@ -5,30 +5,25 @@
 
 #include "argus_utils/synchronization/SynchronizationTypes.h"
 
-namespace argus 
+namespace argus
 {
-	
-/*! \class ThreadsafeContainer ThreadsafeQueue.h
-* \brief is a mutex-wrapped container. */
-template <class T, template<typename,typename> class Container = std::deque >
-class ThreadsafeQueue {
+
+/*! \brief A mutex-wrapped container that supports size limiting. */
+template <class T,
+          template<typename,typename> class Container = std::deque >
+class ThreadsafeQueue
+{
 public:
 
 	typedef T DataType;
 	typedef Container<T, typename std::allocator<T> > ContainerType;
 
-	ThreadsafeQueue( size_t initSize )
-	{
-		_items.resize( initSize );
-		_items.clear();
-	}
+	ThreadsafeQueue( size_t maxSize = std::numeric_limits<size_t>::max() )
+	: _maxSize( maxSize ) {}
 
-	template< class... Args>
-	void EmplaceBack( Args&&... args )
+	void SetMaxSize( size_t maxSize )
 	{
-		WriteLock lock( _mutex );
-		_items.emplace_back( args... );
-		_hasContents.notify_one();
+		_maxSize = maxSize;
 	}
 
 	template< class... Args>
@@ -36,6 +31,16 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.emplace_front( args... );
+		if( _items.size() > _maxSize ) { _items.pop_back(); }
+		_hasContents.notify_one();
+	}
+
+	template< class... Args>
+	void EmplaceBack( Args&&... args )
+	{
+		WriteLock lock( _mutex );
+		_items.emplace_back( args... );
+		if( _items.size() > _maxSize ) { _items.pop_front(); }
 		_hasContents.notify_one();
 	}
 
@@ -43,6 +48,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.push_front( item );
+		if( _items.size() > _maxSize ) { _items.pop_back(); }
 		_hasContents.notify_one();
 	}
 	
@@ -50,6 +56,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.push_back( item );
+		if( _items.size() > _maxSize ) { _items.pop_front(); }
 		_hasContents.notify_one();
 	}
 	
@@ -160,6 +167,7 @@ protected:
 
 	mutable Mutex _mutex;
 
+	size_t _maxSize;
 	ContainerType _items;
 	ConditionVariable _hasContents;
 	ConditionVariable _isEmpty;
