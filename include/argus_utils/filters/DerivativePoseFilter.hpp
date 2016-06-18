@@ -147,8 +147,10 @@ public:
 
 		MatrixType V = Cfull*_cov*Cfull.transpose() + R;
 		Eigen::LDLT<MatrixType> Vinv( V );
+		MatrixType K = _cov * Cfull.transpose() * Vinv.solve( MatrixType::Identity( V.rows(), V.cols() ) );
 		
-		FullVecType correction = _cov * Cfull.transpose() * Vinv.solve( v );
+		// FullVecType correction = _cov * Cfull.transpose() * Vinv.solve( v );
+		FullVecType correction = K * v;
 		TangentType poseCorrection = correction.template head<TangentDim>();
 		DerivsType derivsCorrection = correction.template tail<DerivsDim>();
 
@@ -160,7 +162,10 @@ public:
 
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;
-		_cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
+		// Joseph form more stable?
+		// _cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
+		MatrixType l = FullCovType::Identity() - K*Cfull;
+		_cov = l * _cov * l.transpose() + K * R * K.transpose();
 
 		return info;
 	}
