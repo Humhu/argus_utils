@@ -4,7 +4,7 @@ import numpy as np
 from argus_msgs.msg import MatrixFloat64
 
 def MsgToMatrix( msg ):
-    if len( msg.data != msg.rows * msg.cols ):
+    if len( msg.data ) != msg.rows * msg.cols:
         raise RuntimeError( 'Message matrix dimensions do not match data.' )
 
     if msg.column_major:
