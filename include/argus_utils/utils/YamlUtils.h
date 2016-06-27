@@ -20,6 +20,19 @@ bool GetYamlField( const YAML::Node& yaml, const std::string& field,
 	return true;
 }
 
+template <typename Out>
+Out TryYamlField( const YAML::Node& yaml, const std::string& field )
+{
+	try
+	{
+		return yaml[field].as<Out>();
+	}
+	catch( YAML::TypedBadConversion<Out> e )
+	{
+		throw std::runtime_error( "Could not parse YAML field: " + field );
+	}
+}
+
 /*! \brief Convert to/from the XmlRpc type used by ROS. */
 // NOTE XmlRpc is awful to use and doesn't have a const iterator
 // TODO Robustify this function. It still fails on some instances
