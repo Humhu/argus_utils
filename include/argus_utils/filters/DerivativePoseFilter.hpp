@@ -112,6 +112,7 @@ public:
 		x.template tail<DerivsDim>() = _derivs;
 		
 		PredictInfo info;
+		info.xpre = x;
 		info.Spre = _cov;
 		info.dt = dt;
 		info.Q = Q;
@@ -154,11 +155,13 @@ public:
 		TangentType poseCorrection = correction.template head<TangentDim>();
 		DerivsType derivsCorrection = correction.template tail<DerivsDim>();
 
+		// TODO
+		FullVecType x;
+		x.template head<TangentDim>() = FixedVectorType<TangentDim>::Zero();
+		x.template tail<DerivsDim>() = _derivs;
 		UpdateInfo info;
+		info.xpre = x;
 		info.Spre = _cov;
-		info.innovation = v;
-		info.H = Cfull;
-		info.R = R;
 
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;
@@ -166,6 +169,16 @@ public:
 		// _cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
 		MatrixType l = FullCovType::Identity() - K*Cfull;
 		_cov = l * _cov * l.transpose() + K * R * K.transpose();
+
+		x.template head<TangentDim>() = FixedVectorType<TangentDim>::Zero();
+		x.template tail<DerivsDim>() = _derivs;
+		info.observation = obs;
+		info.innovation = v;
+		info.post_innovation = obs - C*_derivs;
+		info.delta_x = x - info.xpre;
+		info.Spost = _cov;
+		info.H = Cfull;
+		info.R = R;
 
 		return info;
 	}
@@ -184,15 +197,27 @@ public:
 		FullVecType correction = _cov * Cfull.transpose() * Vinv.solve( v );
 		TangentType poseCorrection = correction.template head<TangentDim>();
 		DerivsType derivsCorrection = correction.template tail<DerivsDim>();
-
+		
+		// TODO
+		FullVecType x;
+		x.template head<TangentDim>() = FixedVectorType<TangentDim>::Zero();
+		x.template tail<DerivsDim>() = _derivs;
 		UpdateInfo info;
+		info.xpre = x;
 		info.Spre = _cov;
-		info.innovation = v;
-		info.H = Cfull;
 
 		_pose = _pose * PoseType::Exp( poseCorrection );
 		_derivs = _derivs + derivsCorrection;
 		_cov = _cov - _cov * Cfull.transpose() * Vinv.solve( Cfull * _cov );
+
+		x.template head<TangentDim>() = FixedVectorType<TangentDim>::Zero();
+		x.template tail<DerivsDim>() = _derivs;
+		info.observation = v; // TODO
+		info.innovation = v;
+		info.post_innovation = PoseType::Log( _pose.Inverse() * obs );
+		info.delta_x = x - info.xpre;
+		info.Spost = _cov;
+		info.H = Cfull;
 
 		return info;
 	}
