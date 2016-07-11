@@ -2,6 +2,7 @@
 
 #include "argus_utils/utils/LinalgTypes.h"
 #include "argus_utils/filters/FilterInfo.h"
+#include "argus_utils/random/MultivariateGaussian.hpp"
 #include <Eigen/Cholesky>
 #include <boost/bind.hpp>
 #include <iostream>
@@ -65,7 +66,7 @@ public:
 
 	DerivativePoseFilter( const PoseType& pose, const DerivsType& derivs,
 	                      const FullCovType& cov )
-	: _pose( pose ), _derivs( derivs ), _cov( cov ) 
+	: _pose( pose ), _derivs( derivs ), _cov( cov ), _normal( TangentDim )
 	{
 		_tfunc = boost::bind( &IntegralMatrix<TangentDim,N>, _1, -1 );
 	}
@@ -129,6 +130,26 @@ public:
 
 		info.F = A;
 		return info;
+	}
+
+	double DerivsLikelihood( const VectorType& obs, const DerivObsMatrix& C,
+	                         const MatrixType& R )
+	{
+		unsigned int zDim = obs.size();
+		if( zDim != C.rows() ) 
+		{
+			throw std::runtime_error( "DerivativePoseFilter: Deriv update dimension mismatch." );
+		}
+
+		VectorType v = obs - C*_derivs;
+
+		FullObsMatrix Cfull( zDim, CovarianceDim );
+		Cfull.template leftCols<TangentDim>() = WidthFixedMatrixType<TangentDim>::Zero( TangentDim, zDim );
+		Cfull.template rightCols<DerivsDim>() = C;
+
+
+		MatrixType V = Cfull*_cov*Cfull.transpose() + R;
+		return GaussianPDF( V, v );
 	}
 
 	UpdateInfo UpdateDerivs( const VectorType& obs, const DerivObsMatrix& C,
@@ -227,7 +248,7 @@ private:
 	PoseType _pose;
 	DerivsType _derivs;
 	FullCovType _cov;
-
+	MultivariateGaussian<> _normal;
 	TransMatFunc _tfunc;
 	
 };

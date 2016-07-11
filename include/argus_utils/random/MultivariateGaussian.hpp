@@ -16,6 +16,17 @@
 namespace argus 
 {
 
+// TODO
+inline
+double GaussianPDF( const MatrixType& cov, const VectorType& x )
+{
+	Eigen::LDLT<MatrixType> ldlt( cov );
+	MatrixType exponent = -0.5 * x.transpose() * ldlt.solve( x );
+	double z = std::pow( 2*M_PI, -x.size()/2.0 )
+		       * std::pow( cov.determinant(), -0.5 );
+	return z * std::exp( exponent(0) );
+}
+
 /*! \brief Multivariate normal sampling and PDF class. */
 template <typename Engine = boost::mt19937>
 class MultivariateGaussian 
@@ -133,7 +144,7 @@ protected:
 	MatrixType _L;
 
 	double _z; // Normali_zation constant;
-	Eigen::LLT<MatrixType> _llt;
+	Eigen::LDLT<MatrixType> _llt;
 
 	void Initialize()
 	{
@@ -143,7 +154,7 @@ protected:
 			throw std::runtime_error( "MultivariateGaussian: mean and covariance dimension mismatch." );
 		}
 
-		_llt = Eigen::LLT<MatrixType>( _covariance );
+		_llt = Eigen::LDLT<MatrixType>( _covariance );
 		_L = _llt.matrixL();
 		_z = std::pow( 2*M_PI, -_mean.size()/2.0 )
 		     * std::pow( _covariance.determinant(), -0.5 );
