@@ -14,7 +14,7 @@ find_package(catkin REQUIRED
 )
 
 # Use Boost for utilities
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS random)
 
 # Use Eigen for matrices, linear algebra
 find_package(Eigen3 REQUIRED)
@@ -75,10 +75,10 @@ target_link_libraries( argus_utils
 add_dependencies( argus_utils ${catkin_EXPORTED_TARGETS} )
 
 add_executable( yaml_test tests/YamlTest.cpp )
-target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} )
+target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 
 add_executable( filter_test tests/FilterTest.cpp )
-target_link_libraries( filter_test argus_utils ${catkin_LIBRARIES} )
+target_link_libraries( filter_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 
 ## Mark executables and/or libraries for installation
 install(TARGETS argus_utils yaml_test
