@@ -31,7 +31,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.emplace_front( args... );
-		if( _items.size() > _maxSize ) { _items.pop_back(); }
+		if( _maxSize > 0 && _items.size() > _maxSize ) { _items.pop_back(); }
 		_hasContents.notify_one();
 	}
 
@@ -40,7 +40,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.emplace_back( args... );
-		if( _items.size() > _maxSize ) { _items.pop_front(); }
+		if( _maxSize > 0 && _items.size() > _maxSize ) { _items.pop_front(); }
 		_hasContents.notify_one();
 	}
 
@@ -48,7 +48,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.push_front( item );
-		if( _items.size() > _maxSize ) { _items.pop_back(); }
+		if( _maxSize > 0 && _items.size() > _maxSize ) { _items.pop_back(); }
 		_hasContents.notify_one();
 	}
 	
@@ -56,7 +56,7 @@ public:
 	{
 		WriteLock lock( _mutex );
 		_items.push_back( item );
-		if( _items.size() > _maxSize ) { _items.pop_front(); }
+		if( _maxSize > 0 && _items.size() > _maxSize ) { _items.pop_front(); }
 		_hasContents.notify_one();
 	}
 	
