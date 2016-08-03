@@ -4,6 +4,27 @@ namespace argus
 {
 
 template <>
+bool GetParam<std::vector<unsigned int>>( ros::NodeHandle& nh, const std::string& name, 
+                                          std::vector<unsigned int>& t )
+{
+	std::vector<int> vals;
+	if( !GetParam<std::vector<int>>( nh, name, vals ) ) { return false; }
+
+	t.clear();
+	t.reserve( vals.size() );
+	for( unsigned int i = 0; i < vals.size(); i++ )
+	{
+		if( vals[i] < 0 )
+		{
+			ROS_WARN_STREAM( "Attempted to parse value " << vals[i] << " as unsigned int." );
+			return false;
+		}
+		t.push_back( static_cast<unsigned int>( vals[i] ) );
+	}
+	return true;
+}
+
+template <>
 bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
                              unsigned int& t )
 {

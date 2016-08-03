@@ -20,6 +20,10 @@ bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
 }
 
 template <>
+bool GetParam<std::vector<unsigned int>>( ros::NodeHandle& nh, const std::string& name, 
+                                          std::vector<unsigned int>& t );
+
+template <>
 bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
                              unsigned int& t );
 
@@ -97,6 +101,44 @@ bool GetDiagonalParam( ros::NodeHandle& nh, const std::string& name,
 		mat(ind,ind) = values[ind];
 	}
 	return true;
+}
+
+// TODO Remove the call to Scalar? It is very confusing to have GetParam<double> retrieve a matrix
+template <typename Scalar, typename Derived>
+bool GetParam( ros::NodeHandle& nh, const std::string& name, 
+               Eigen::DenseBase<Derived>& mat )
+{
+	if( !GetMatrixParam<Scalar,Derived>( nh, name, mat ) )
+	{
+		if( !GetDiagonalParam<Scalar,Derived>( nh, name, mat ) )
+		{
+			ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
+			return false;
+		}
+	}
+	return true;
+}
+
+template <typename Scalar, typename Derived, typename Default>
+void GetParam( ros::NodeHandle& nh, const std::string& name, 
+               Eigen::DenseBase<Derived>& mat,
+               const Eigen::DenseBase<Default>& def )
+{
+	if( !GetParam<Scalar>( nh, name, mat ) )
+	{
+		ROS_WARN_STREAM( "Parameter: " << name << " will use default: " << def );
+		mat = def;
+	}
+}
+
+template <typename Scalar, typename Derived>
+void GetParamRequired( ros::NodeHandle& nh, const std::string& name, 
+                       Eigen::DenseBase<Derived>& mat )
+{
+	if( !GetParam<Scalar>( nh, name, mat ) )
+	{
+		throw std::runtime_error( "Could not retrieve required parameter: " + name );
+	}
 }
 
 }
