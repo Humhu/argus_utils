@@ -1,8 +1,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <yaml-cpp/yaml.h>
-#include <argus_utils/utils/YamlUtils.h>
+#include "argus_utils/utils/YamlUtils.h"
 
 namespace argus
 {
@@ -30,6 +29,10 @@ bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name,
 template <>
 bool GetParam<double>( ros::NodeHandle& nh, const std::string& name, 
                        double& t );
+
+template <>
+bool GetParam<YAML::Node>( ros::NodeHandle& nh, const std::string& name,
+                           YAML::Node& t );
 
 /*! \brief Retrieve a parameter from the ROS parameter server. Print an error
  * if the parameter retrieval fails. Has a specialization for unsigned ints
@@ -59,9 +62,6 @@ void GetParam( ros::NodeHandle& nh, const std::string& name, T& t,
 
 /*! \brief Get/set a parameter YAML object out of a node handle by combining calls
  * to get XmlRpc and convert it. Returns success. */
-bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, 
-                   YAML::Node& node );
-
 void SetYamlParam( ros::NodeHandle& nh, const std::string& name, 
                    const YAML::Node& node );
 

@@ -63,17 +63,18 @@ bool GetParam<double>( ros::NodeHandle& nh, const std::string& name,
 	return true;
 }
 
-bool GetYamlParam( ros::NodeHandle& nh, const std::string& name, 
-                          YAML::Node& node )
+template <>
+bool GetParam<YAML::Node>( ros::NodeHandle& nh, const std::string& name,
+                           YAML::Node& t )
 {
 	XmlRpc::XmlRpcValue xml;
-	if( !nh.getParam( name, xml ) ) { return false; }
-	node = XmlToYaml( xml );
+	if( !GetParam<XmlRpc::XmlRpcValue>( nh, name, xml ) ) { return false; }
+	t = XmlToYaml( xml );
 	return true;
 }
 
 void SetYamlParam( ros::NodeHandle& nh, const std::string& name, 
-                          const YAML::Node& node )
+                   const YAML::Node& node )
 {
 	XmlRpc::XmlRpcValue xml = YamlToXml( node );
 	nh.setParam( name, xml );
