@@ -6,9 +6,12 @@
 namespace argus
 {
 
-
+// For all signed ints, bools, classes
 template <typename T>
-bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+typename std::enable_if< (std::is_integral<T>::value && std::is_signed<T>::value) ||
+                         std::is_same<T,bool>::value ||
+                         !std::is_arithmetic<T>::value, bool >::type
+GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
 {
 	if( !nh.getParam( name, t ) ) 
 	{ 
@@ -18,17 +21,56 @@ bool GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
 	return true;
 }
 
+// For all unsigned ints
+template <typename T>
+typename std::enable_if< std::is_unsigned<T>::value && !std::is_same<T,bool>::value, bool >::type
+GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+{
+	typename std::make_signed<T>::type tSigned;
+	if( !nh.getParam( name, tSigned ) ) 
+	{ 
+		ROS_WARN_STREAM( "Could not retrieve parameter: " << name );
+		return false;
+	}
+	// Make sure we're above 0
+	if( tSigned < 0 )
+	{
+		throw std::runtime_error( "Attempted to parse value " +
+		                          std::to_string(tSigned) +
+		                          " as unsigned." );
+	}
+	t = (T) tSigned;
+	return true;
+}
+
+// For all floats
+template <typename T>
+typename std::enable_if< std::is_floating_point<T>::value, bool >::type
+GetParam( ros::NodeHandle& nh, const std::string& name, T& t )
+{
+	// First see if normal retrieval works
+	if( !nh.getParam( name, t ) )
+	{
+		// If not, see if it's a string that we can convert
+		std::string valS;
+		if( !GetParam<std::string>( nh, name, valS ) ) { return false; }
+		try
+		{
+			t = std::stod( valS );
+		}
+		catch( std::exception e ) 
+		{
+			ROS_WARN_STREAM( "Parameter " << valS << " could not be interpreted as a float." );
+			return false;
+		}
+	}
+	return true;
+}
+
+// TODO meta-templatize this one too
 template <>
 bool GetParam<std::vector<unsigned int>>( ros::NodeHandle& nh, const std::string& name, 
                                           std::vector<unsigned int>& t );
-
-template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                             unsigned int& t );
-
-template <>
-bool GetParam<double>( ros::NodeHandle& nh, const std::string& name, 
-                       double& t );
 
 template <>
 bool GetParam<YAML::Node>( ros::NodeHandle& nh, const std::string& name,

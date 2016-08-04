@@ -24,44 +24,44 @@ bool GetParam<std::vector<unsigned int>>( ros::NodeHandle& nh, const std::string
 	return true;
 }
 
-template <>
-bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
-                             unsigned int& t )
-{
-	int val;
-	if( !GetParam<int>( nh, name, val ) ) { return false; }
+// template <>
+// bool GetParam<unsigned int>( ros::NodeHandle& nh, const std::string& name, 
+//                              unsigned int& t )
+// {
+// 	int val;
+// 	if( !GetParam<int>( nh, name, val ) ) { return false; }
 
-	if( val < 0 )
-	{
-		ROS_WARN_STREAM( "Attempted to parse value " << val << " as unsigned int." );
-		return false;
-	}
-	t = static_cast<unsigned int>( val );
-	return true;
-}
+// 	if( val < 0 )
+// 	{
+// 		ROS_WARN_STREAM( "Attempted to parse value " << val << " as unsigned int." );
+// 		return false;
+// 	}
+// 	t = static_cast<unsigned int>( val );
+// 	return true;
+// }
 
-template <>
-bool GetParam<double>( ros::NodeHandle& nh, const std::string& name,
-                       double& t )
-{
-	// First see if normal double retrieval works
-	if( !nh.getParam( name, t ) )
-	{
-		// If not, see if it's a string that we can convert
-		std::string valS;
-		if( !GetParam<std::string>( nh, name, valS ) ) { return false; }
-		try
-		{
-			t = std::stod( valS );
-		}
-		catch( std::exception e ) 
-		{
-			ROS_WARN_STREAM( "Parameter " << valS << " could not be interpreted as a double." );
-			return false;
-		}
-	}
-	return true;
-}
+// template <>
+// bool GetParam<double>( ros::NodeHandle& nh, const std::string& name,
+//                        double& t )
+// {
+// 	// First see if normal double retrieval works
+// 	if( !nh.getParam( name, t ) )
+// 	{
+// 		// If not, see if it's a string that we can convert
+// 		std::string valS;
+// 		if( !GetParam<std::string>( nh, name, valS ) ) { return false; }
+// 		try
+// 		{
+// 			t = std::stod( valS );
+// 		}
+// 		catch( std::exception e ) 
+// 		{
+// 			ROS_WARN_STREAM( "Parameter " << valS << " could not be interpreted as a double." );
+// 			return false;
+// 		}
+// 	}
+// 	return true;
+// }
 
 template <>
 bool GetParam<YAML::Node>( ros::NodeHandle& nh, const std::string& name,
