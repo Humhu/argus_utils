@@ -80,8 +80,11 @@ target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARI
 add_executable( filter_test tests/FilterTest.cpp )
 target_link_libraries( filter_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 
+add_executable( matrix_test tests/MatrixTest.cpp )
+target_link_libraries( matrix_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
+
 ## Mark executables and/or libraries for installation
-install(TARGETS argus_utils yaml_test
+install(TARGETS argus_utils yaml_test matrix_test
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

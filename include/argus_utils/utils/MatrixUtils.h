@@ -28,13 +28,15 @@ argus_msgs::MatrixFloat64 MatrixToMsg( const MatrixType& mat );
 MatrixType MsgToSymmetric( const argus_msgs::SymmetricFloat64& msg );
 argus_msgs::SymmetricFloat64 SymmetricToMsg( const MatrixType& mat );
 
-inline Eigen::Map<const VectorType> GetVectorView( const std::vector<double>& vec )
+template <typename T>
+Eigen::Map<const VectorType> GetVectorView( const T& mat )
 {
-	return Eigen::Map<const VectorType>( vec.data(), vec.size() );
+	return Eigen::Map<const VectorType>( mat.data(), mat.size() );
 }
-inline Eigen::Map<VectorType> GetVectorView( std::vector<double>& vec )
+template <typename T>
+Eigen::Map<VectorType> GetVectorView( T& mat )
 {
-	return Eigen::Map< VectorType>( vec.data(), vec.size() );
+	return Eigen::Map<VectorType>( mat.data(), mat.size() );
 }
 
 // Generic parsing - requires that mat have set dimensions
@@ -280,6 +282,33 @@ bool PutSubmatrix( Eigen::DenseBase<DerivedIn>& mat,
 	}
 	
 	return true; // TODO Get rid of these useless bools
+}
+
+// Retrieves the lower triangular part of a matrix with optional offset
+template <typename Derived>
+VectorType GetLowerTriangular( const Eigen::DenseBase<Derived>& in,
+                               unsigned int offset = 0 )
+{
+	if( in.rows() != in.cols() )
+	{
+		throw std::runtime_error( "GetLowerTriangular: Input must be square." );
+	}
+	unsigned int extents = in.cols();
+	if( offset >= extents )
+	{
+		throw std::runtime_error( "GetLowerTriangular: Cannot have offset greater or equal to extents." );
+	}
+	unsigned int ind = 0;
+	unsigned int dim = extents - offset;
+	VectorType out( dim*(dim+1)/2 );
+	for( unsigned int j = 0; j < extents - offset; ++j )
+		{
+		for( unsigned int i = j+offset; i < extents; ++i )
+		{
+			out(ind++) = in(i,j);
+		}
+	}
+	return out;
 }
 
 } // end namespace argus
