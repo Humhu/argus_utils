@@ -38,7 +38,7 @@ public:
 
 	/*! \brief Seeds the engine using a true random number. Sets _mean to _zero
 	 * and _covariance to identity. */
-	MultivariateGaussian( unsigned int dim )
+	MultivariateGaussian( unsigned int dim = 1 )
 	: _distribution( 0.0, 1.0 ), 
 	  _adapter( _generator, _distribution ),
 	  _mean( VectorType::Zero( dim ) ), _covariance( MatrixType::Identity( dim, dim ) )
@@ -78,6 +78,21 @@ public:
 	{
 		_generator.seed( seed );
 		Initialize();
+	}
+
+	MultivariateGaussian( const MultivariateGaussian& other )
+	: _generator( other._generator ),
+	  _distribution( 0.0, 1.0 ),
+	  _adapter( _generator, _distribution ),
+	  _mean( other._mean )
+	{}
+
+	MultivariateGaussian& operator=( const MultivariateGaussian& other )
+	{
+		_mean = other._mean;
+		_covariance = other._covariance;
+		_generator = other._generator;
+		return *this;
 	}
     
     void SetMean( const VectorType& u ) 
