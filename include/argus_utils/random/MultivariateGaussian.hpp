@@ -41,11 +41,11 @@ public:
 	MultivariateGaussian( unsigned int dim = 1 )
 	: _distribution( 0.0, 1.0 ), 
 	  _adapter( _generator, _distribution ),
-	  _mean( VectorType::Zero( dim ) ), _covariance( MatrixType::Identity( dim, dim ) )
+	  _mean( VectorType::Zero( dim ) )
 	{
 		boost::random::random_device rng;
 		_generator.seed( rng );
-		Initialize();
+		InitializeCov( MatrixType::Identity( dim, dim ) );
 	}
 	
 	/*! \brief Seeds the engine using the specified seed. Sets _mean to _zero
@@ -53,31 +53,31 @@ public:
 	MultivariateGaussian( unsigned int dim, unsigned long seed )
 	: _distribution( 0.0, 1.0 ), 
 	  _adapter( _generator, _distribution ),
-	  _mean( VectorType::Zero( dim ) ), _covariance( MatrixType::Identity( dim, dim ) )
+	  _mean( VectorType::Zero( dim ) )
 	{
 		_generator.seed( seed );
-		Initialize();
+		InitializeCov( MatrixType::Identity( dim, dim ) );
 	}
 	
 	/*! \brief Seeds the engine using a true random number. */
 	MultivariateGaussian( const VectorType& u, const MatrixType& S )
 	: _distribution( 0.0, 1.0 ), 
 	  _adapter( _generator, _distribution ),
-	  _mean( u ), _covariance( S )
+	  _mean( u )
 	{
 		boost::random::random_device rng;
 		_generator.seed( rng );
-		Initialize();
+		InitializeCov( S );
 	}
     
 	/*! \brief Seeds the engine using a specified seed. */
 	MultivariateGaussian( const VectorType& u, const MatrixType& S, unsigned long seed )
 	: _distribution( 0.0, 1.0 ), 
 	  _adapter( _generator, _distribution ),
-	  _mean( u ), _covariance( S )
+	  _mean( u )
 	{
 		_generator.seed( seed );
-		Initialize();
+		InitializeCov( S );
 	}
 
 	MultivariateGaussian( const MultivariateGaussian& other )
@@ -90,7 +90,8 @@ public:
 	MultivariateGaussian& operator=( const MultivariateGaussian& other )
 	{
 		_mean = other._mean;
-		_covariance = other._covariance;
+		_z = other._z;
+		_llt = other._llt;
 		_generator = other._generator;
 		return *this;
 	}
@@ -99,23 +100,33 @@ public:
     { 
     	if( u.size() != _mean.size() )
     	{
-    		throw std::runtime_error( "MultivariateGaussian: Invalid _mean dimension." );
+    		throw std::runtime_error( "MultivariateGaussian: Invalid mean dimension." );
     	}
     	_mean = u; 
     }
     void SetCovariance( const MatrixType& S )
 	{
-		if( S.rows() != _covariance.rows() || S.cols() != _covariance.cols() )
+		if( S.rows() != _llt.matrixL().rows() || S.cols() != _llt.matrixL().cols() )
 		{
-			throw std::runtime_error( "MultivariateGaussian: Invalid _covariance dimensions." );
+			throw std::runtime_error( "MultivariateGaussian: Invalid covariance dimensions." );
 		}
-		_covariance = S;
-		Initialize();
+		InitializeCov( S );
+	}
+
+	void SetInformation( const MatrixType& I )
+	{
+		if( I.rows() != _llt.matrixL().rows() || I.cols() != _llt.matrixL().cols() )
+		{
+			throw std::runtime_error( "MultivariateGaussian: Invalid information dimensions." );
+		}
+		Eigen::LDLT<MatrixType> llti( I );
+		MatrixType cov = llti.solve( MatrixType::Identity( I.rows(), I.cols() ) );
+		InitializeCov( cov );
 	}
     
 	const VectorType& GetMean() const { return _mean; }
-	const MatrixType& GetCovariance() const { return _covariance; }
-	const MatrixType& GetCholesky() const { return _L; }
+	const MatrixType& GetCovariance() const { return _llt.reconstructedMatrix(); }
+	const MatrixType& GetCholesky() const { return _llt.matrixL(); }
 	
 	/*! \brief Generate a sample truncated at a specified number of standard deviations. */
 	VectorType Sample( double v = 3.0 )
@@ -132,7 +143,7 @@ public:
 			samples(i) = s;
 		}
 		
-		return _mean + _L*samples;
+		return _mean + _llt.matrixL()*samples;
 	}
 
 	/*! \brief Evaluate the multivariate normal PDF for the specified sample. */
@@ -154,27 +165,21 @@ protected:
 	RandAdapter _adapter;
 
 	VectorType _mean;
-	MatrixType _covariance;
+	double _z; // Normalization constant;
+	Eigen::LLT<MatrixType> _llt;
 
-	MatrixType _L;
-
-	double _z; // Normali_zation constant;
-	Eigen::LDLT<MatrixType> _llt;
-
-	void Initialize()
+	void InitializeCov( const MatrixType& cov )
 	{
-		if( _mean.size() != _covariance.rows() || 
-		    _mean.size() != _covariance.cols() )
+		if( _mean.size() != cov.rows() || 
+		    _mean.size() != cov.cols() )
 		{
 			throw std::runtime_error( "MultivariateGaussian: mean and covariance dimension mismatch." );
 		}
 
-		_llt = Eigen::LDLT<MatrixType>( _covariance );
-		_L = _llt.matrixL();
+		_llt = Eigen::LLT<MatrixType>( cov );
 		_z = std::pow( 2*M_PI, -_mean.size()/2.0 )
-		     * std::pow( _covariance.determinant(), -0.5 );
+		     * std::pow( cov.determinant(), -0.5 );
 	}
-
 };
 
 }
