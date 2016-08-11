@@ -196,4 +196,16 @@ std::set<Key> make_set( const std::vector<Key>& vec )
 	return span;
 }
 
+template <typename Index, typename Content>
+void remove_lowest( std::map<Index,Content>& m )
+{
+	m.erase( m.begin() );
+}
+
+template <typename Index, typename Content>
+void remove_highest( std::map<Index,Content>& m )
+{
+	m.erase( m.rbegin() );
+}
+
 } // end namespace argus
