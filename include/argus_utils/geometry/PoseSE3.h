@@ -7,7 +7,7 @@
 #include "argus_utils/utils/LinalgTypes.h"
 
 // @todo: Deprecate Pose and move to sophus::se3d
-// #include <sophus/se3.hpp>
+#include <sophus/se3.hpp>
 
 namespace argus
 {
@@ -64,7 +64,7 @@ public:
 	
 	static PoseSE3 FromSE2( const PoseSE2& se2 );
 
-	const Transform& ToTransform() const;
+	Transform ToTransform() const;
 	FixedVectorType<VectorDimension> ToVector() const; //[x,y,z,qw,qx,qy,qz]
 	PoseSE3 Inverse() const;
 
@@ -80,10 +80,7 @@ public:
 	/*! \brief Return the adjoint matrix of an SE3 object. */
 	static AdjointMatrix Adjoint( const PoseSE3& other );
 
-	PoseSE3 operator+() const;
-	PoseSE3 operator-() const;
 	PoseSE3 operator*( const PoseSE3& other ) const;
-	PoseSE3 operator/( const PoseSE3& other ) const;
 
 	template <typename Derived>
 	void FromVector( const Eigen::DenseBase<Derived>& vec )
@@ -97,28 +94,11 @@ public:
 
 protected:
 
-	Transform _tform;
+	//Transform _tform;
+	Sophus::SE3d _tform;
 
-	/*! \brief Initialize this SE3 object from a 3x3 rotation matrix. */
-	void FromMat3( const FixedMatrixType<3,3>& rot );
-	/*! \brief Initialize this SE3 object from a 4x4 homogeneous matrix. */
-	void FromMat4( const FixedMatrixType<4,4>& mat );
-
-	void FromTerms( double x, double y, double z, double qw, double qx, 
-	                double qy, double qz );
 };
 
 std::ostream& operator<<( std::ostream& os, const PoseSE3& se3 );
-
-template<class C>
-Eigen::Matrix<C,3,3> cross_product_matrix( const Eigen::Matrix<C,3,1>& v );
-
-// Helper for exp functions
-struct SECoefficients {
-	double a;
-	double b;
-	double c;
-	SECoefficients( double theta );
-};
 	
 }

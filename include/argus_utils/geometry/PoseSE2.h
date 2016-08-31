@@ -3,6 +3,8 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
+#include "sophus/se2.hpp"
+
 #include "argus_utils/geometry/GeometryTypes.h"
 #include "argus_utils/utils/LinalgTypes.h"
 
@@ -15,7 +17,6 @@ class PoseSE3;
 
 class PoseSE2 
 {
-friend class PoseSE3;
 public:
 
 	static const int VectorDimension = 3;
@@ -52,7 +53,7 @@ public:
 	
 	static PoseSE2 FromSE3( const PoseSE3& se3 );
 
-	const Transform& ToTransform() const;
+	Transform ToTransform() const;
 	FixedVectorType<VectorDimension> ToVector() const;
 	PoseSE2 Inverse() const;
 
@@ -68,28 +69,12 @@ public:
 	/*! \brief Return the adjoint matrix of an SE2 object. */
 	static PoseSE2::AdjointMatrix Adjoint( const PoseSE2& pose );
 	
-	PoseSE2 operator+() const;
-	PoseSE2 operator-() const;
 	PoseSE2 operator*( const PoseSE2& other ) const;
-	PoseSE2 operator/( const PoseSE2& other ) const;
-
-	template <typename Derived>
-	void FromVector( const Eigen::DenseBase<Derived>& vec )
-	{
-		if( vec.size() != VectorDimension )
-		{
-			throw std::runtime_error( "PoseSE2: Need 3 elements to populate." );
-		}
-		FromTerms( vec(0), vec(1), vec(2) );
-	}
 
 protected:
 
-	// Translation2Type trans;
-	// Rotation rot;
-	Transform _tform;
-
-	void FromTerms( double x, double y, double yaw );
+	// Transform _tform;
+	Sophus::SE2d _tform;
 
 };
 
