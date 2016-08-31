@@ -64,6 +64,15 @@ public:
 	
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+	DerivativePoseFilter() 
+	: _pose(), 
+	  _derivs( DerivsType::Zero() ), 
+	  _cov( FullCovType::Identity() ),
+	  _normal( TangentDim ) 
+	{
+		_tfunc = boost::bind( &IntegralMatrix<TangentDim,N>, _1, -1 );
+	}
+
 	DerivativePoseFilter( const PoseType& pose, const DerivsType& derivs,
 	                      const FullCovType& cov )
 	: _pose( pose ), _derivs( derivs ), _cov( cov ), _normal( TangentDim )
