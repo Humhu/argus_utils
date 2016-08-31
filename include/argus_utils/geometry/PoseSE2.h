@@ -19,6 +19,8 @@ class PoseSE2
 {
 public:
 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
 	static const int VectorDimension = 3;
 	static const int TangentDimension = 3;
 	

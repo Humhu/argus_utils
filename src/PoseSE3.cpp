@@ -13,6 +13,7 @@ PoseSE3::PoseSE3( double x, double y, double z, double qw,
                   double qx, double qy, double qz )
 {
 	QuaternionType q( qw, qx, qy, qz );
+	q.normalize();
 	Sophus::SE3d::Point t;
 	t << x, y, z;
 	_tform = Sophus::SE3d( q, t );
@@ -21,6 +22,7 @@ PoseSE3::PoseSE3( double x, double y, double z, double qw,
 PoseSE3::PoseSE3( const VectorType& vec ) 
 {
 	QuaternionType q( vec(3), vec(4), vec(5), vec(6) );
+	q.normalize();
 	_tform = Sophus::SE3d( q, vec.head<3>() );
 }
 
@@ -59,7 +61,9 @@ PoseSE3::PoseSE3( const Translation3Type& t, const QuaternionType& q )
 {
 	Sophus::SE3d::Point p;
 	p << t.x(), t.y(), t.z();
-	_tform = Sophus::SE3d( q, p );
+	QuaternionType quat = q;
+	quat.normalize();
+	_tform = Sophus::SE3d( quat, p );
 }
 
 PoseSE3 PoseSE3::FromSE2( const PoseSE2& se2 ) 

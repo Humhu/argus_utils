@@ -21,6 +21,8 @@ class PoseSE3
 friend class PoseSE2;
 public:
 
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
 	static const int VectorDimension = 7;
 	static const int TangentDimension = 6;
 	
