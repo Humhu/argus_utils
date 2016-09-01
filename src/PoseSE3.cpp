@@ -76,6 +76,11 @@ PoseSE3 PoseSE3::FromSE2( const PoseSE2& se2 )
 	return PoseSE3( H3 );
 }
 
+FixedMatrixType<4,4> PoseSE3::ToMatrix() const
+{
+	return _tform.matrix();
+}
+
 Translation3Type PoseSE3::GetTranslation() const 
 {
 	return Translation3Type( _tform.translation() );

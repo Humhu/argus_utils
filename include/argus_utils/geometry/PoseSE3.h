@@ -66,6 +66,7 @@ public:
 	
 	static PoseSE3 FromSE2( const PoseSE2& se2 );
 
+	FixedMatrixType<4,4> ToMatrix() const;
 	Transform ToTransform() const;
 	FixedVectorType<VectorDimension> ToVector() const; //[x,y,z,qw,qx,qy,qz]
 	PoseSE3 Inverse() const;

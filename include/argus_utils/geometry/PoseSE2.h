@@ -53,8 +53,11 @@ public:
 	/*! \brief Creates an SE2 object from a translation and rotation. */
 	explicit PoseSE2( const Translation2Type& t, const Rotation& r );
 	
+	explicit PoseSE2( const FixedMatrixType<3,3>& H );
+	
 	static PoseSE2 FromSE3( const PoseSE3& se3 );
 
+	FixedMatrixType<3,3> ToMatrix() const;
 	Transform ToTransform() const;
 	FixedVectorType<VectorDimension> ToVector() const;
 	PoseSE2 Inverse() const;
