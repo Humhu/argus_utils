@@ -72,7 +72,7 @@ target_link_libraries( argus_utils
     ${catkin_LIBRARIES}
     yaml-cpp
 )
-add_dependencies( argus_utils ${catkin_EXPORTED_TARGETS} )
+add_dependencies( argus_utils sophus_external ${catkin_EXPORTED_TARGETS} )
 
 add_executable( yaml_test tests/YamlTest.cpp )
 target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )

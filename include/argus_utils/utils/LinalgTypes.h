@@ -65,4 +65,9 @@ using WidthFixedRowMatrixType = Eigen::Matrix <double, Eigen::Dynamic,
 template <int Cols>
 using WidthFixedMatrixType = WidthFixedColMatrixType<Cols>;
 
+typedef Eigen::Map<MatrixType> MatrixViewType;
+typedef Eigen::Map<const MatrixType> ConstMatrixViewType;
+typedef Eigen::Map<VectorType> VectorViewType;
+typedef Eigen::Map<const VectorType> ConstVectorViewType;
+
 }
