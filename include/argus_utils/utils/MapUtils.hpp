@@ -15,6 +15,8 @@ template <typename Index, typename Content>
 bool get_closest_greater_eq( std::map<Index,Content>& m, const Index& ind,
                              typename std::map<Index,Content>::iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	iter = m.lower_bound( ind );
 	if( iter == m.end() ) { return false; }
 	return true;
@@ -23,6 +25,8 @@ template <typename Index, typename Content>
 bool get_closest_greater_eq( const std::map<Index,Content>& m, const Index& ind,
                              typename std::map<Index,Content>::const_iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	iter = m.lower_bound( ind );
 	if( iter == m.end() ) { return false; }
 	return true;
@@ -34,6 +38,8 @@ template <typename Index, typename Content>
 bool get_closest_greater( std::map<Index,Content>& m, const Index& ind,
                           typename std::map<Index,Content>::iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	iter = m.upper_bound( ind );
 	if( iter == m.end() ) { return false; }
 	return true;
@@ -42,6 +48,8 @@ template <typename Index, typename Content>
 bool get_closest_greater( const std::map<Index,Content>& m, const Index& ind,
                           typename std::map<Index,Content>::const_iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	iter = m.upper_bound( ind );
 	if( iter == m.end() ) { return false; }
 	return true;
@@ -121,6 +129,8 @@ template <typename Index, typename Content>
 bool get_closest( std::map<Index,Content>& m, const Index& ind,
                   typename std::map<Index,Content>::iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	typename std::map<Index,Content>::iterator lower, upper;
 	bool hasLower = get_closest_lesser( m, ind, lower );
 	bool hasUpper = get_closest_greater( m, ind, upper );
@@ -134,6 +144,8 @@ template <typename Index, typename Content>
 bool get_closest( const std::map<Index,Content>& m, const Index& ind,
                   typename std::map<Index,Content>::const_iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	typename std::map<Index,Content>::const_iterator lower, upper;
 	bool hasLower = get_closest_lesser( m, ind, lower );
 	bool hasUpper = get_closest_greater( m, ind, upper );
@@ -148,6 +160,8 @@ template <typename Index, typename Content>
 bool get_closest_eq( std::map<Index,Content>& m, const Index& ind,
                      typename std::map<Index,Content>::iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	typename std::map<Index,Content>::iterator lower, upper;
 	bool hasLower = get_closest_lesser_eq( m, ind, lower );
 	bool hasUpper = get_closest_greater_eq( m, ind, upper );
@@ -161,6 +175,8 @@ template <typename Index, typename Content>
 bool get_closest_eq( const std::map<Index,Content>& m, const Index& ind,
                      typename std::map<Index,Content>::const_iterator& iter )
 {
+	if( m.empty() ) { return false; }
+
 	typename std::map<Index,Content>::const_iterator lower, upper;
 	bool hasLower = get_closest_lesser_eq( m, ind, lower );
 	bool hasUpper = get_closest_greater_eq( m, ind, upper );
@@ -199,12 +215,16 @@ std::set<Key> make_set( const std::vector<Key>& vec )
 template <typename Index, typename Content>
 void remove_lowest( std::map<Index,Content>& m )
 {
+	if( m.empty() ) { return; }
+
 	m.erase( m.begin() );
 }
 
 template <typename Index, typename Content>
 void remove_highest( std::map<Index,Content>& m )
 {
+	if( m.empty() ) { return; }
+
 	m.erase( m.rbegin() );
 }
 
