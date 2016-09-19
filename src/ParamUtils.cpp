@@ -36,6 +36,16 @@ bool GetParam<YAML::Node,ros::NodeHandle>( const ros::NodeHandle& nh,
 	return true;
 }
 
+template <>
+bool GetParam<YAML::Node,YAML::Node>( const YAML::Node& node,
+                                      const std::string& name,
+                                      YAML::Node& t )
+{
+	if( !node[name] ) { return false; }
+	t = node[name];
+	return true;
+}
+
 void SetYamlParam( const ros::NodeHandle& nh, 
                    const std::string& name, 
                    const YAML::Node& node )
