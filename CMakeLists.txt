@@ -19,7 +19,7 @@ find_package(Boost REQUIRED COMPONENTS random)
 # Use Eigen for matrices, linear algebra
 find_package(Eigen3 REQUIRED)
 
-# TODO Use Sophus for group algebras
+# Use Sophus for group algebras
 include( ExternalProject )
 ExternalProject_Add( sophus_external
   GIT_REPOSITORY git@github.com:strasdat/Sophus.git
@@ -33,6 +33,7 @@ message( STATUS ${sophus_INCLUDE_DIRS} )
 catkin_package(
     INCLUDE_DIRS    include
                     ${sophus_INCLUDE_DIRS}
+                    ${EIGEN3_INCLUDE_DIR}
     
     LIBRARIES       argus_utils
                     
