@@ -47,10 +47,10 @@ PoseSE2::PoseSE2( const Translation2Type& t, const Rotation& r )
 PoseSE2 PoseSE2::FromSE3( const PoseSE3& se3 )
 {
 	FixedMatrixType<4,4> H = se3.ToMatrix();
-	FixedMatrixType<3,3> H2 = FixedMatrixType<3,3>::Identity();
-	H2.topLeftCorner<2,2>() = H.topLeftCorner<2,2>();
-	H2.topRightCorner<2,1>() = H.topRightCorner<2,1>();
-	return PoseSE2( H2 );
+	Rotation R( 0 );
+	R.fromRotationMatrix( H.topLeftCorner<2,2>() );
+	Translation2Type t( H(0,3), H(1,3) );
+	return PoseSE2( t, R );
 }
 
 PoseSE2::TangentVector PoseSE2::Log( const PoseSE2& pose ) 

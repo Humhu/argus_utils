@@ -27,7 +27,8 @@ PoseSE3::PoseSE3( const VectorType& vec )
 }
 
 PoseSE3::PoseSE3( const Transform& t ) 
-: _tform( t.rotation(), t.translation() ) {}
+: _tform( t.rotation(), t.translation() ) 
+{}
 
 PoseSE3::PoseSE3( const MatrixType& mat ) 
 {
@@ -48,7 +49,8 @@ PoseSE3::PoseSE3( const MatrixType& mat )
 }
 
 PoseSE3::PoseSE3( const FixedMatrixType<4,4>& mat ) 
-: _tform( mat ) {}
+: _tform( mat ) 
+{}
 
 PoseSE3::PoseSE3( const FixedMatrixType<3,3>& rot )
 {
@@ -78,7 +80,8 @@ PoseSE3 PoseSE3::FromSE2( const PoseSE2& se2 )
 
 FixedMatrixType<4,4> PoseSE3::ToMatrix() const
 {
-	return _tform.matrix();
+	MatrixType H = _tform.matrix();
+	return H;
 }
 
 Translation3Type PoseSE3::GetTranslation() const 
