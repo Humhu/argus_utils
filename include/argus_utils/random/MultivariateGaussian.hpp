@@ -22,8 +22,9 @@ double GaussianPDF( const MatrixType& cov, const VectorType& x )
 {
 	Eigen::LDLT<MatrixType> ldlt( cov );
 	MatrixType exponent = -0.5 * x.transpose() * ldlt.solve( x );
-	double z = std::pow( 2*M_PI, -x.size()/2.0 )
-		       * std::pow( cov.determinant(), -0.5 );
+	double det = ldlt.vectorD().array().prod();
+	double z = 1.0 / ( std::pow( 2*M_PI, x.size()/2.0 )
+		               * std::sqrt( det ) );
 	return z * std::exp( exponent(0) );
 }
 
