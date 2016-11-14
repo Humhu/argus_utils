@@ -139,6 +139,15 @@ PoseSE3::TangentVector MsgToTangent( const geometry_msgs::Twist& twist )
 	return tan;
 }
 
+FixedVectorType<3> MsgToVector3( const geometry_msgs::Vector3& msg )
+{
+	FixedVectorType<3> vec;
+	vec(0) = msg.x;
+	vec(1) = msg.y;
+	vec(2) = msg.z;
+	return vec;
+}
+
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul ) 
 {
 	os << "Y: " << eul.yaw << " P: " << eul.pitch << " R: " << eul.roll;

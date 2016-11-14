@@ -3,6 +3,7 @@
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 
 #include <tf/LinearMath/Transform.h> // From tf
 
@@ -37,6 +38,21 @@ PoseSE3 MsgToPose( const geometry_msgs::Pose& msg );
 geometry_msgs::Twist TangentToMsg( const PoseSE2::TangentVector& tan );
 geometry_msgs::Twist TangentToMsg( const PoseSE3::TangentVector& tan );
 PoseSE3::TangentVector MsgToTangent( const geometry_msgs::Twist& twist );
+
+// Convert between geometry_msgs::Vector3 message and FixedVectorType<3>
+template <typename Derived>
+geometry_msgs::Vector3 Vector3ToMsg( const Eigen::DenseBase<Derived>& vec )
+{
+	if( vec.size() != 3 ) { throw std::invalid_argument( "Vector must have 3 elements." ); }
+	geometry_msgs::Vector3 msg;
+	msg.x = vec(0);
+	msg.y = vec(1);
+	msg.z = vec(2);
+	return msg;
+}
+
+FixedVectorType<3> MsgToVector3( const geometry_msgs::Vector3& msg );
+
 
 // Print an Euler angle in "Y: yaw P: pitch R: roll" format
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul );

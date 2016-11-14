@@ -228,11 +228,24 @@ bool SerializeSymmetricMatrix( const Eigen::DenseBase<Derived>& mat,
 	return SerializeSymmetricMatrix<Derived, Scalar>( mat, dst.data() );
 }
 
+template <typename Derived>
+void CheckIndices( const Eigen::DenseBase<Derived>& mat,
+                   unsigned int i, unsigned int j )
+{
+	if( i > mat.rows() || j > mat.cols() )
+	{
+		std::stringstream ss;
+		ss << "Attempted to access (" << i << ", " << j
+		   << ") in a (" << mat.rows() << ", " << mat.cols() << ") matrix.";
+		throw std::runtime_error( ss.str() );
+	}
+}
+
 template <typename DerivedIn, typename DerivedOut, typename IndsType>
 void GetSubmatrix( const Eigen::DenseBase<DerivedIn>& mat,
                    Eigen::DenseBase<DerivedOut>& sub,
                    const IndsType& rowInds,
-                   const IndsType& colInds )
+                   const IndsType& colInds = {0} )
 {
 	unsigned int N = rowInds.size();
 	unsigned int M = colInds.size();
@@ -245,37 +258,35 @@ void GetSubmatrix( const Eigen::DenseBase<DerivedIn>& mat,
 	{
 		for( unsigned int j = 0; j < M; j++ )
 		{
-			sub(i,j) = mat( rowInds[i], rowInds[j] );
+			CheckIndices( sub, i, j );
+			CheckIndices( mat, rowInds[i], colInds[j] );
+			sub(i,j) = mat( rowInds[i], colInds[j] );
 		}
 	}
 }
 
-template <typename DerivedIn, typename DerivedOut, unsigned long N, unsigned long M>
-bool PutSubmatrix( Eigen::DenseBase<DerivedIn>& mat,
+template <typename DerivedIn, typename DerivedOut, typename IndsType>
+void PutSubmatrix( Eigen::DenseBase<DerivedIn>& mat,
                    const Eigen::DenseBase<DerivedOut>& sub,
-                   const std::array<unsigned int, N>& rowInds,
-                   const std::array<unsigned int, M>& colInds )
+                   const IndsType& rowInds,
+                   const IndsType& colInds )
 {
-	assert( sub.rows()*sub.cols() == N*M );
-	
-	for( unsigned int i = 0; i < N; i++ )
+	unsigned int N = rowInds.size();
+	unsigned int M = colInds.size();
+	if( sub.rows() != N || sub.cols() != M )
 	{
-		assert( rowInds[i] < mat.rows() );
-	}
-	for( unsigned int i = 0; i < M; i++ )
-	{
-		assert( colInds[i] < mat.cols() );
+		throw std::invalid_argument( "Submatrix invalid size." );
 	}
 	
 	for( unsigned int i = 0; i < N; i++ )
 	{
 		for( unsigned int j = 0; j < N; j++ )
 		{
+			CheckIndices( sub, i, j );
+			CheckIndices( mat, rowInds[i], colInds[j] );
 			mat( rowInds[i], rowInds[j] ) = sub(i,j);
 		}
 	}
-	
-	return true; // TODO Get rid of these useless bools
 }
 
 // Retrieves the lower triangular part of a matrix with optional offset
