@@ -22,7 +22,7 @@ find_package(Eigen3 REQUIRED)
 # Use Sophus for group algebras
 include( ExternalProject )
 ExternalProject_Add( sophus_external
-  GIT_REPOSITORY git@github.com:strasdat/Sophus.git
+  GIT_REPOSITORY https://github.com/strasdat/Sophus.git #git@github.com:strasdat/Sophus.git
   BUILD_COMMAND cmake --build .
   INSTALL_COMMAND make install
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}
