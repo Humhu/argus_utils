@@ -46,6 +46,20 @@ QuaternionType EulerToQuaternion( const EulerAngles& eul )
                            * Eigen::AngleAxisd(eul.roll, Eigen::Vector3d::UnitX()) );
 }
 
+geometry_msgs::Vector3 PositionToMsg( const Translation3Type& trans )
+{
+	geometry_msgs::Vector3 msg;
+	msg.x = trans.x();
+	msg.y = trans.y();
+	msg.z = trans.z();
+	return msg;
+}
+
+Translation3Type MsgToPosition( const geometry_msgs::Vector3& msg )
+{
+	return Translation3Type( msg.x, msg.y, msg.z );
+}
+
 QuaternionType MsgToQuaternion( const geometry_msgs::Quaternion& msg )
 {
 	return QuaternionType( msg.w, msg.x, msg.y, msg.z );
@@ -61,21 +75,18 @@ geometry_msgs::Quaternion QuaternionToMsg( const QuaternionType& quat )
 	return msg;
 }
 
-PoseSE3 TfToPose( const tf::Transform& trans )
+PoseSE3 TransformToPose( const geometry_msgs::Transform& msg )
 {
-	tf::Vector3 translation = trans.getOrigin();
-	tf::Quaternion quat = trans.getRotation();
-	return PoseSE3( translation.getX(), translation.getY(), translation.getZ(),
-	                quat.w(), quat.x(), quat.y(), quat.z() );
+	return PoseSE3( MsgToPosition( msg.translation ),
+	                MsgToQuaternion( msg.rotation ) );
 }
 
-tf::Transform PoseToTf( const PoseSE3& pose )
+geometry_msgs::Transform PoseToTransform( const PoseSE3& pose )
 {
-	QuaternionType quat = pose.GetQuaternion();
-	tf::Quaternion tfQuat( quat.x(), quat.y(), quat.z(), quat.w() );
-	Translation3Type trans = pose.GetTranslation();
-	tf::Vector3 tfTrans( trans.x(), trans.y(), trans.z() );
-	return tf::Transform( tfQuat, tfTrans );
+	geometry_msgs::Transform msg;
+	msg.translation = PositionToMsg( pose.GetTranslation() );
+	msg.rotation = QuaternionToMsg( pose.GetQuaternion() );
+	return msg;
 }
 
 geometry_msgs::Pose PoseToMsg( const PoseSE2& pose )

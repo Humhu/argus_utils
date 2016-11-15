@@ -4,8 +4,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Vector3.h>
-
-#include <tf/LinearMath/Transform.h> // From tf
+#include <geometry_msgs/Transform.h>
 
 #include "argus_utils/geometry/PoseSE2.h"
 #include "argus_utils/geometry/PoseSE3.h"
@@ -21,9 +20,13 @@ namespace argus
 EulerAngles QuaternionToEuler( const QuaternionType& quat );
 QuaternionType EulerToQuaternion( const EulerAngles& eul );
 
-// Convert between PoseSE3 and tf Transform objects
-tf::Transform PoseToTf( const PoseSE3& pose );
-PoseSE3 TfToPose( const tf::Transform& tf );
+// Convert between PoseSE3 and Transform messages
+geometry_msgs::Transform PoseToTransform( const PoseSE3& pose );
+PoseSE3 TransformToPose( const geometry_msgs::Transform& msg );
+
+// Convert between geometry_msgs::Vector3 message and Translation3Type
+geometry_msgs::Vector3 PositionToMsg( const Translation3Type& trans );
+Translation3Type MsgToPosition( const geometry_msgs::Vector3& msg );
 
 // Convert between geometry_msgs::Quaternion message and QuaternionType
 QuaternionType MsgToQuaternion( const geometry_msgs::Quaternion& msg );
@@ -52,7 +55,6 @@ geometry_msgs::Vector3 Vector3ToMsg( const Eigen::DenseBase<Derived>& vec )
 }
 
 FixedVectorType<3> MsgToVector3( const geometry_msgs::Vector3& msg );
-
 
 // Print an Euler angle in "Y: yaw P: pitch R: roll" format
 std::ostream& operator<<( std::ostream& os, const EulerAngles& eul );

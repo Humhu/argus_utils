@@ -8,7 +8,6 @@ set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED 
     COMPONENTS      roscpp
-                    tf
                     argus_msgs
                     geometry_msgs
 )
@@ -38,7 +37,6 @@ catkin_package(
     LIBRARIES       argus_utils
                     
     CATKIN_DEPENDS  roscpp
-                    tf
                     argus_msgs
                     geometry_msgs
                     
