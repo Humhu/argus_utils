@@ -137,6 +137,14 @@ template <>
 bool GetParam<YAML::Node>( const YAML::Node& node, const std::string& name,
                            YAML::Node& t );
 
+template <typename S>
+bool GetParam( const S& nh, const std::string& name, PoseSE3& pose )
+{
+	YAML::Node node;
+	GetParam( nh, name, node );
+	return GetPoseYaml( node, pose );
+}
+
 /*! \brief Retrieve a parameter from the ROS parameter server. Print an error
  * if the parameter retrieval fails. Has a specialization for unsigned ints
  * that checks to make sure the int value is > 0. */

@@ -12,8 +12,7 @@ namespace argus
 {
 	
 template <typename Out>
-bool GetYamlField( const YAML::Node& yaml, const std::string& field,
-               Out& dst )
+bool GetYamlField( const YAML::Node& yaml, const std::string& field, Out& dst )
 {
 	if( !yaml[field] ) { return false; }
 	dst = yaml[field].as<Out>();
