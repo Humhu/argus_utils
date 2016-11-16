@@ -2,7 +2,20 @@
 
 namespace argus
 {
-	
+
+PoseSE3::TangentVector TransformTangent( const PoseSE3::TangentVector& tan,
+                                         const PoseSE3& pose )
+{
+	return PoseSE3::Adjoint( pose ) * tan;
+}
+
+PoseSE3::CovarianceMatrix TransformCovariance( const PoseSE3::CovarianceMatrix& cov,
+                                               const PoseSE3& pose )
+{
+	PoseSE3::AdjointMatrix adj = PoseSE3::Adjoint( pose );
+	return adj * cov * adj.transpose();
+}
+
 EulerAngles QuaternionToEuler( const QuaternionType& quat )
 {
 	double temp1, temp2;

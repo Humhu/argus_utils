@@ -56,7 +56,6 @@ include_directories( include
 )
 
 add_library( argus_utils
-    src/FilterUtils.cpp
     src/GeometryUtils.cpp
     src/ParamUtils.cpp
     src/PoseSE2.cpp
@@ -75,9 +74,6 @@ add_dependencies( argus_utils sophus_external ${catkin_EXPORTED_TARGETS} )
 
 add_executable( yaml_test tests/YamlTest.cpp )
 target_link_libraries( yaml_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
-
-add_executable( filter_test tests/FilterTest.cpp )
-target_link_libraries( filter_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
 
 add_executable( matrix_test tests/MatrixTest.cpp )
 target_link_libraries( matrix_test argus_utils ${catkin_LIBRARIES} ${Boost_LIBRARIES} )

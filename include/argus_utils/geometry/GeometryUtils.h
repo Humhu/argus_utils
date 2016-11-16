@@ -16,6 +16,13 @@
 namespace argus
 {
 
+// Transform a tangent vector by a pose
+PoseSE3::TangentVector TransformTangent( const PoseSE3::TangentVector& tan,
+                                         const PoseSE3& pose );
+// Transform a covariance by a pose
+PoseSE3::CovarianceMatrix TransformCovariance( const PoseSE3::CovarianceMatrix& cov,
+                                               const PoseSE3& pose );
+
 // Convert between Eigen quaternions and yaw-pitch-roll Euler angles
 EulerAngles QuaternionToEuler( const QuaternionType& quat );
 QuaternionType EulerToQuaternion( const EulerAngles& eul );
