@@ -1,3 +1,4 @@
+#include "argus_utils/utils/ParamUtils.h"
 #include "argus_utils/utils/YamlUtils.h"
 #include "argus_utils/utils/MatrixUtils.h"
 
@@ -208,26 +209,26 @@ YAML::Node SetPoseYaml( const PoseSE3& pose )
 	return node;
 }
 
-bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
-{
-	if( !node["orientation"] || !node["position"] )
-	{
-		return false;
-	}
+// bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
+// {
+// 	if( !node["orientation"] || !node["position"] )
+// 	{
+// 		return false;
+// 	}
 	
-	Eigen::Quaterniond quat;
-	if( !GetOrientationYaml( node["orientation"], quat ) )
-	{
-		EulerAngles eul;
-		if( !GetOrientationYaml( node["orientation"], eul ) ) { return false; }
-		quat = EulerToQuaternion( eul );
-	}
+// 	Eigen::Quaterniond quat;
+// 	if( !GetOrientationYaml( node["orientation"], quat ) )
+// 	{
+// 		EulerAngles eul;
+// 		if( !GetOrientationYaml( node["orientation"], eul ) ) { return false; }
+// 		quat = EulerToQuaternion( eul );
+// 	}
 	
-	Eigen::Translation3d pos; 
-	if( !GetPositionYaml( node["position"], pos ) ) { return false; }
-	pose = PoseSE3( pos, quat );
-	return true;
-}
+// 	Eigen::Translation3d pos; 
+// 	if( !GetPositionYaml( node["position"], pos ) ) { return false; }
+// 	pose = PoseSE3( pos, quat );
+// 	return true;
+// }
 
 YAML::Node SetOrientationYaml( const Eigen::Quaterniond& quat )
 {	
@@ -248,28 +249,6 @@ YAML::Node SetOrientationYaml( const EulerAngles& eul )
 	return node;
 }
 
-bool GetOrientationYaml( const YAML::Node& node, Eigen::Quaterniond& quat )
-{
-	if( !node["qw"] || !node["qx"] || !node["qy"] || !node["qz"] ) { return false; }
-	
-	double qw = node["qw"].as<double>();
-	double qx = node["qx"].as<double>();
-	double qy = node["qy"].as<double>();
-	double qz = node["qz"].as<double>();
-	quat = Eigen::Quaterniond( qw, qx, qy, qz );
-	return true;
-}
-
-bool GetOrientationYaml( const YAML::Node& node, EulerAngles& eul )
-{
-	if( !node["yaw"] || !node["pitch"] || !node["roll"] ) { return false; }
-	
-	eul.yaw = node["yaw"].as<double>();
-	eul.pitch = node["pitch"].as<double>();
-	eul.roll = node["roll"].as<double>();
-	return true;
-}
-
 YAML::Node SetPositionYaml( const Eigen::Translation3d& trans )
 {
 	YAML::Node node;
@@ -277,17 +256,6 @@ YAML::Node SetPositionYaml( const Eigen::Translation3d& trans )
 	node["y"] = trans.y();
 	node["z"] = trans.z();
 	return node;
-}
-
-bool GetPositionYaml( const YAML::Node& node, Eigen::Translation3d& trans )
-{
-	if( !node["x"] || !node["y"] || !node["z"] ) { return false; }
-	
-	double x = node["x"].as<double>();
-	double y = node["y"].as<double>();
-	double z = node["z"].as<double>();
-	trans = Eigen::Translation3d( x, y, z );
-	return true;
 }
 
 YAML::Node SetMatrixYaml( const MatrixType& mat )
@@ -305,10 +273,10 @@ bool GetMatrixYaml( const YAML::Node& node, MatrixType& mat )
 	unsigned int rows, cols;
 	std::vector<double> values;
 	bool colMajor;
-	if( !GetYamlField( node, "column_major", colMajor )
-	 || !GetYamlField( node, "rows", rows )
-	 || !GetYamlField( node, "cols", cols )
-	 || !GetYamlField( node, "values", values ) ) { return false; }
+	if( !GetParam( node, "column_major", colMajor )
+	 || !GetParam( node, "rows", rows )
+	 || !GetParam( node, "cols", cols )
+	 || !GetParam( node, "values", values ) ) { return false; }
 
 	if( colMajor )
 	{

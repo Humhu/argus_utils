@@ -63,6 +63,7 @@ add_library( argus_utils
     src/MatrixUtils.cpp
     src/Semaphore.cpp
     src/WorkerPool.cpp
+    src/ParsersCommon.cpp
     src/YamlUtils.cpp
 )
 target_link_libraries( argus_utils
