@@ -39,6 +39,19 @@ Eigen::Map<VectorType> GetVectorView( T& mat )
 	return Eigen::Map<VectorType>( mat.data(), mat.size() );
 }
 
+template <typename Derived, typename Scalar>
+bool ParseDiagonalMatrix( const Scalar* src,
+                          Eigen::DenseBase<Derived>& mat )
+{
+	if( mat.rows() != mat.cols() ) { return false; }
+	mat.setZero();
+	for( unsigned int i = 0; i < mat.rows(); ++i )
+	{
+		mat(i,i) = src[i];
+	}
+	return true;
+}
+
 // Generic parsing - requires that mat have set dimensions
 template <typename Derived, typename Scalar>
 bool ParseMatrix( const Scalar* src,
@@ -78,9 +91,16 @@ bool ParseMatrix( const std::vector<Scalar>& data,
                   Eigen::DenseBase<Derived>& mat,
                   int order = RowMajor )
 {
-	if( mat.rows()*mat.cols() != data.size() ) { return false; }
-	
-	return ParseMatrix<Derived,Scalar>( data.data(), mat, order );
+	if( mat.rows()*mat.cols() == data.size() )
+	{
+		return ParseMatrix( data.data(), mat, order );
+	}
+	else if( mat.rows() == mat.cols() &&
+	         mat.rows() == data.size() )
+	{
+		return ParseDiagonalMatrix( data.data(), mat );
+	}
+	return false;
 }
 
 // Parsing from a boost array
