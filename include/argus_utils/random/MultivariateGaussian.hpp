@@ -124,7 +124,8 @@ public:
 		MatrixType cov = llti.solve( MatrixType::Identity( I.rows(), I.cols() ) );
 		InitializeCov( cov );
 	}
-    
+
+	unsigned int GetDimension() const { return _mean.size(); }
 	const VectorType& GetMean() const { return _mean; }
 	const MatrixType& GetCovariance() const { return _llt.reconstructedMatrix(); }
 	const MatrixType& GetCholesky() const { return _llt.matrixL(); }
