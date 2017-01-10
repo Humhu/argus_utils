@@ -6,16 +6,44 @@
 namespace argus
 {
 
+template <typename FloatType, typename S>
+bool GetFloatVector( const S& src, const std::string& name,
+                     std::vector<FloatType>& vec )
+{
+	if( GetParam( src, name, vec ) ) { return true; }
+	// If this fails, we probably have string values
+	std::vector<std::string> vstr;
+	if( !GetParam( src, name, vstr ) )
+	{
+		std::cout << "Could not get string vector." << std::endl;
+		return false; 
+	}
+	try
+	{
+		for( unsigned int i = 0; i < vstr.size(); i++ )
+		{
+			vec.push_back( std::stod( vstr[i] ) );
+		}
+		return true;
+	}
+	// Thrown when interpretation fails
+	catch( std::invalid_argument )
+	{
+		std::cout << "Could not interpret all string elements as double" << std::endl;
+		return false;
+	}
+}
+
 template <typename Derived, typename S>
 bool GetMatrixParam( const S& src, const std::string& name, 
                      Eigen::DenseBase<Derived>& mat )
 {
 	std::vector<typename Eigen::DenseBase<Derived>::Scalar> values;
-	if( !GetParam( src, name, values ) ) { return false; }
+	if( !GetFloatVector( src, name, values ) ) { return false; }
 	if( !ParseMatrix( values, mat ) )
 	{
-		ROS_WARN_STREAM( "Could not parse values from " << name
-		                 << " into " << mat.rows() << " by " << mat.cols()
+		ROS_WARN_STREAM( "Could not parse " << values.size() << " values from " 
+		                 << name << " into " << mat.rows() << " by " << mat.cols()
 		                 << " matrix." );
 		return false;
 	}
@@ -27,13 +55,13 @@ bool GetDiagonalParam( const S& src, const std::string& name,
                        Eigen::DenseBase<Derived>& mat )
 {
 	std::vector<typename Eigen::DenseBase<Derived>::Scalar> values;
-	if( !GetParam( src, name, values ) ) { return false; }
+	if( !GetFloatVector( src, name, values ) ) { return false; }
 	unsigned int minDim = std::min( mat.rows(), mat.cols() );
 	if( values.size() != minDim ) 
 	{ 
-	  ROS_WARN_STREAM( "Could not parse values from " << name
-			   << " into " << minDim << " diagonal matrix." );
-	  return false;
+		ROS_WARN_STREAM( "Could not parse " << values.size() << " values from " 
+		                 << name << " into " << minDim << " diagonal matrix." );
+		return false;
 	}
 	
 	mat.setZero();
