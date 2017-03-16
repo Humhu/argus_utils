@@ -20,9 +20,22 @@ public:
 
     typedef std::pair<Key, Msg> KeyedData;
 
-    MessageThrottler( double rate = 10.0, unsigned int buffLen = 10 ) 
+    MessageThrottler() 
     {
-        SetTargetRate( rate );
+        SetTargetRate( 10.0 );
+        SetMinRate( 0.0 );
+        SetBufferLength( 10 );
+    }
+
+    void SetMinRate( double min )
+    {
+        if( min < 0 )
+        {
+            throw std::invalid_argument( "Min rate must be positive." );
+        }
+
+        _minRate = min;
+        ComputeBufferRates();
     }
 
     void SetTargetRate( double rate )
@@ -60,7 +73,7 @@ public:
         {
             throw std::invalid_argument( "Weights must be positive." );
         }
-        _registry.at( key ).weight = w;
+        _registry.at( key ).SetWeight( w );
         ComputeBufferRates();
     }
 
@@ -68,7 +81,6 @@ public:
                      const Msg& m )
     {
         CheckStatus( key, true );
-        WriteLock lock( _mutex );
         _registry.at( key ).Buffer( m );
     }
 
@@ -107,7 +119,17 @@ private:
     void ComputeBufferRates()
     {
         typedef typename SourceRegistry::value_type Item;
-        
+
+        double assignableRate = _overallRate - _registry.size() * _minRate;
+        double effectiveMin = _minRate;
+        if( assignableRate < 0 )
+        {
+            std::cerr << "Warning: min rate " << _minRate << " with " << _registry.size()
+                      << " sources exceeds overall rate " << _overallRate << std::endl;
+            effectiveMin = _overallRate / _registry.size();
+            assignableRate = 0;
+        }
+
         double sumWeights = 0;
         BOOST_FOREACH( const Item& item, _registry )
         {
@@ -117,7 +139,7 @@ private:
         BOOST_FOREACH( Item& item, _registry )
         {
             SourceRegistration& reg = item.second;
-            reg.rate = _overallRate * reg.weight / sumWeights; 
+            reg.rate = assignableRate * reg.weight / sumWeights + effectiveMin;
         }
     }
 
@@ -159,6 +181,12 @@ private:
             return std::floor( std::min( maxOutput, numBuffered ) );
         }
 
+        void SetWeight( double w )
+        {
+            WriteLock lock( mutex );
+            weight = w;
+        }
+
         void Buffer( const Msg& m )
         {
             WriteLock lock( mutex );
@@ -187,6 +215,7 @@ private:
     // Parameters
     unsigned int _bufferLen;
     double _overallRate;
+    double _minRate;
  };
 
 }
