@@ -213,7 +213,7 @@ private:
 		BOOST_FOREACH( Item & item, _registry )
 		{
 			SourceRegistration& reg = item.second;
-			while( get_lowest_key( reg.buffer ) <= t )
+			while( !reg.buffer.empty() && get_lowest_key( reg.buffer ) <= t )
 			{
 				remove_lowest( reg.buffer );
 			}
