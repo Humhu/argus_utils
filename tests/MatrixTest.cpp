@@ -34,5 +34,8 @@ int main( int argc, char** argv )
 		std::cout << "Passed 4-3 test." << std::endl;
 	}
 
+	TestPositiveDefinite( mat );
+	TestPositiveSemidefinite( mat );
+
 	return 0;
 }

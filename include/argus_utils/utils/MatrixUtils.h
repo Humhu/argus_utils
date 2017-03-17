@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Eigen/Cholesky>
+
 #include <boost/array.hpp>
 #include <cassert>
 
@@ -334,6 +336,22 @@ VectorType GetLowerTriangular( const Eigen::DenseBase<Derived>& in,
 		}
 	}
 	return out;
+}
+
+template <typename Derived>
+bool TestPositiveSemidefinite( const Eigen::DenseBase<Derived>& in )
+{
+	Eigen::LLT<Derived> llt( in );
+	return llt.info() == Eigen::ComputationInfo::Success;
+}
+
+template <typename Derived>
+bool TestPositiveDefinite( const Eigen::DenseBase<Derived>& in )
+{
+	Eigen::LLT<Derived> llt( in );
+	if( llt.info() != Eigen::ComputationInfo::Success ) { return false; }
+	Derived L = llt.matrixL();
+	return (L.diagonal().array() > 0).all();
 }
 
 } // end namespace argus
