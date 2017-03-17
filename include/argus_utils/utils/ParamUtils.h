@@ -27,7 +27,8 @@ void GetParamRequired( const S& src, const std::string& name, T& t )
 {
 	if( !GetParam( src, name, t ) )
 	{ 
-		throw std::runtime_error( "Could not retrieve required parameter: " + name );
+		std::string base = FieldRetrieval<S>::qualify( src );
+		throw std::runtime_error( "Could not retrieve required parameter: " + base + "/" + name );
 	}
 }
 
@@ -40,7 +41,8 @@ void GetParam( const S& src, const std::string& name, T& t,
 {
 	if( !GetParam( src, name, t ) ) 
 	{ 
-		ROS_WARN_STREAM( "Parameter: " << name << " will use default: " << def );
+		std::string base = FieldRetrieval<S>::qualify( src );
+		ROS_WARN_STREAM( "Parameter: " << base << "/" << name << " will use default: " << def );
 		t = def;
 	}
 }

@@ -15,6 +15,7 @@ struct FieldRetrieval
 	template <typename T>
 	static void set( Source& src, const std::string& field, const T& data );
 	static bool has( const Source& src, const std::string& field );
+	static std::string qualify( const Source& src );
 };
 
 template <>
@@ -39,6 +40,11 @@ struct FieldRetrieval<ros::NodeHandle>
 	static bool has( const ros::NodeHandle& src, const std::string& field )
 	{
 		return src.hasParam( field );
+	}
+
+	static std::string qualify( const ros::NodeHandle& src )
+	{
+		return src.resolveName("");
 	}
 
 };
@@ -68,6 +74,18 @@ struct FieldRetrieval<YAML::Node>
 	static bool has( const YAML::Node& src, const std::string& field )
 	{
 		return src[field];
+	}
+
+	static std::string qualify( const YAML::Node& src )
+	{
+		YAML::Node base = src;
+		std::string ret = "";
+		if( base.Type() == YAML::NodeType::Map )
+		{
+			ret = base.as<std::string>();
+
+		}
+		return ret;
 	}
 
 };
