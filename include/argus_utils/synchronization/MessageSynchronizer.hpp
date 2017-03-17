@@ -2,12 +2,12 @@
 
 #include <deque>
 #include <boost/foreach.hpp>
-#include <boost/circular_buffer.hpp>
 #include <Eigen/Dense>
 #include <sstream>
 #include <stdexcept>
 
 #include "argus_utils/synchronization/SynchronizationTypes.h"
+#include "argus_utils/utils/MapUtils.hpp"
 
 namespace argus
 {
@@ -17,202 +17,224 @@ namespace argus
  * NOTE: Accesses to the output buffer are synchronized, but parameter setting and registration
  * is not
  */
-template <typename Msg, typename Key = std::string>
+template<typename Msg, typename Key = std::string>
 class MessageSynchronizer
 {
 public:
 
-    typedef std::pair<double, Msg> StampedData;
-    typedef std::map<Key, StampedData> DataMap;
+	typedef std::tuple<Key, double, Msg> KeyedStampedData;
 
-    MessageSynchronizer( unsigned int buffLen = 10, double maxDt = 0.1 ) 
-    : _bufferLen( buffLen ), _maxDt( maxDt ) {}
+	MessageSynchronizer()
+	{
+		SetBufferLength( 10 );
+		SetMaxDt( 0.1 );
+		SetMinSyncNum( 0 );
+	}
 
-    // NOTE Does not change buffer length of existing buffers!
-    void SetBufferLength( unsigned int buffLen )
-    {
-        if( buffLen != _bufferLen && _registry.size() > 0 )
-        {
-            std::cerr << "Warning: Changing buffer length does not modify existing buffers." << std::endl;
-        }
-        _bufferLen = buffLen;
-    }
+	// NOTE Does not change buffer length of existing buffers!
+	void SetBufferLength( unsigned int buffLen )
+	{
+		_bufferLen = buffLen;
+	}
 
-    void SetMaxDt( double dt )
-    {
-        _maxDt = dt;
-    }
+	void SetMaxDt( double dt )
+	{
+		if( dt < 0 )
+		{
+			throw std::invalid_argument( "Max dt must be non-negative." );
+		}
+		_maxDt = dt;
+	}
 
-    void RegisterSource( const Key& key )
-    {
-        if( _registry.count( key ) > 0 )
-        {
-            std::stringstream ss;
-            ss << "Source: " << key << " already registered!";
-            throw std::invalid_argument( ss.str() );
-        }
+	void SetMinSyncNum( unsigned int num )
+	{
+		_minSyncNum = num;
+	}
 
-        _registry[ key ] = Buffer( _bufferLen );
-    }
-    
-    void BufferData( const Key& key,
-                     double t,
-                     const Msg& m )
-    {
-        if( _registry.count( key ) == 0 )
-        {
-            std::stringstream ss;
-            ss << "Source: " << key << " not registered!";
-            throw std::invalid_argument( ss.str() );
-        }
+	void RegisterSource( const Key& key )
+	{
+		WriteLock lock( _registryMutex );
+		CheckStatus( key, false, lock );
+		_registry[key];
+	}
 
-        Buffer& buff = _registry[ key ];
-        if( !buff.empty() )
-        {
-            double lastTime = _registry[ key ].back().first;
-            if( t < lastTime )
-            {
-                std::stringstream ss;
-                ss << "Time " << t << " predecdes last time " << lastTime;
-                throw std::invalid_argument( ss.str() );
-            }
-        }
+	void BufferData( const Key& key,
+	                 double t,
+	                 const Msg& m )
+	{
+		ReadLock lock( _registryMutex );
+		CheckStatus( key, true, lock );
 
-        _registry[ key ].push_back( StampedData(t, m ) );
-        CheckBuffers();
-    }
+		SourceRegistration& reg = _registry.at( key );
+		WriteLock buffLock( reg.bufferMutex );
 
-    DataMap WaitForOutput()
-    {
-        WriteLock lock( _mutex );
-        while( _outputBuff.empty() )
-        {
-            _hasOutput.wait( lock );
-        }
+		if( !reg.buffer.empty() )
+		{
+			double lastTime = get_highest_key( reg.buffer );
+			if( t < lastTime )
+			{
+				std::stringstream ss;
+				ss << "Time " << t << " predecdes last time " << lastTime;
+				throw std::invalid_argument( ss.str() );
+			}
+		}
 
-        DataMap out = _outputBuff.front();
-        _outputBuff.pop_front();
-        return out;
-    }
+		reg.buffer[t] = m;
 
-    bool HasOutput() const
-    {
-        WriteLock lock( _mutex );                
-        return !_outputBuff.empty();
-    }
+		// Prune down to size
+		while( reg.buffer.size() > _bufferLen )
+		{
+			remove_lowest( reg.buffer );
+		}
+	}
 
-    DataMap GetOutput()
-    {
-        WriteLock lock( _mutex );                
-        if( _outputBuff.empty() )
-        {
-            throw std::runtime_error("Cannot get output from empty buffer!");
-        }
+	bool GetOutput( std::vector<KeyedStampedData>& out )
+	{
+		out.clear();
 
-        DataMap out = _outputBuff.front();
-        _outputBuff.pop_front();
-        return out;
-    }
+		// Nobody else can interact with registry here
+		WriteLock lock( _registryMutex );
+
+		// Quick fail if we have nothing to check!
+		if( _registry.size() == 0 ) { return false; }
+
+		while( !AnyBuffersEmpty( lock ) )
+		{
+			double earliest = GetEarliestTime( lock );
+			if( EnoughContain( earliest, lock ) )
+			{
+				RetrieveAndRemoveData( earliest, out, lock );
+				// Don't remove b/c there may be more synchronized sets
+				return true;
+			}
+			else
+			{
+				// Trim off all data up to and including, and try again
+				RemoveBeforeInclusive( earliest, lock );
+			}
+		}
+		return false;
+	}
 
 private:
 
-    void CheckBuffers()
-    {
-        while( !AnyBuffersEmpty() )
-        {
-            DataMap oldest = GetOldest();
-            
-            Eigen::VectorXd times( oldest.size() );
-            unsigned int i = 0;
-            typedef typename DataMap::value_type Item;
-            BOOST_FOREACH( const Item& item, oldest )
-            {
-                const StampedData& data = item.second;
-                double t = data.first;
-                times(i) = t;
-                ++i;
-            }
+	struct SourceRegistration
+	{
+		mutable Mutex bufferMutex;
+		std::map<double, Msg> buffer;
+	};
 
-            double mostRecent = times.maxCoeff();
-            double spread = mostRecent - times.minCoeff();
-            if( spread > _maxDt )
-            {
-                RemoveBefore( mostRecent - _maxDt );
-            }
-            else
-            {
-                WriteLock lock( _mutex );                        
-                _outputBuff.emplace_back(oldest);
-                _hasOutput.notify_one();
-                lock.release();
+	typedef std::map<Key, SourceRegistration> SourceRegistry;
+	mutable Mutex _registryMutex; // Locks all access to the registry
+	SourceRegistry _registry;
 
-                RemoveOldest();
-            }
-        }
-    }
+	// Parameters
+	unsigned int _bufferLen;
+	double _maxDt;
+	unsigned int _minSyncNum;
 
-    DataMap GetOldest() const
-    {
-        DataMap out;
-        typedef typename SourceRegistry::value_type Item;
-        BOOST_FOREACH( const Item& item, _registry )
-        {
-            const Key& key = item.first;
-            const Buffer& buff = item.second;
-            out[ key ] = buff.front();
-        }
-        return out;
-    }
+	bool AnyBuffersEmpty( const WriteLock& lock ) const
+	{
+		CheckLockOwnership( lock, &_registryMutex );
 
-    bool AnyBuffersEmpty() const
-    {
-        typedef typename SourceRegistry::value_type Item;        
-        BOOST_FOREACH( const Item& item, _registry )
-        {
-            const Buffer& buff = item.second;            
-            if( buff.empty() ) { return true; }
-        }
-        return false;
-    }
+		typedef typename SourceRegistry::value_type Item;
+		BOOST_FOREACH( const Item &item, _registry )
+		{
+			const SourceRegistration& reg = item.second;
+			if( reg.buffer.empty() ) { return true; }
+		}
+		return false;
+	}
 
-    /*! \brief Removes the oldest data from each buffer.*/
-    void RemoveOldest()
-    {
-        typedef typename SourceRegistry::value_type Item;
-        BOOST_FOREACH( Item& item, _registry )
-        {
-            Buffer& buff = item.second;
-            buff.pop_front();
-        }
-    }
+	double GetEarliestTime( const WriteLock& lock ) const
+	{
+		CheckLockOwnership( lock, &_registryMutex );
 
-    /*! \brief Removes all stamped data with time before specified t. */
-    void RemoveBefore( double t )
-    {
-        typedef typename SourceRegistry::value_type Item;
-        BOOST_FOREACH( Item& item, _registry )
-        {
-            Buffer& buff = item.second;
-            while( !buff.empty() && buff.front().first < t )
-            {
-                buff.pop_front();
-            }
-        }
-    }
+		typedef typename SourceRegistry::value_type Item;
+		double earliest = std::numeric_limits<double>::infinity();
+		BOOST_FOREACH( const Item &item, _registry )
+		{
+			const SourceRegistration& reg = item.second;
+			double buffEarliest = get_lowest_key( reg.buffer );
+			if( buffEarliest < earliest )
+			{
+				earliest = buffEarliest;
+			}
+		}
+		return earliest;
+	}
 
-    mutable Mutex _mutex;
-    ConditionVariable _hasOutput;
+	bool EnoughContain( double t, const WriteLock& lock )
+	{
+		CheckLockOwnership( lock, &_registryMutex );
 
-    typedef boost::circular_buffer<StampedData> Buffer;
-    typedef std::map<Key, Buffer> SourceRegistry;
-    SourceRegistry _registry;
+		typename std::map<double, Msg>::const_iterator iter;
+		typedef typename SourceRegistry::value_type Item;
+		unsigned int count = 0;
+		BOOST_FOREACH( const Item &item, _registry )
+		{
+			const SourceRegistration& reg = item.second;
+			if( !get_closest_eq( reg.buffer, t, iter ) ) { continue; }
+			double closest = iter->first;
+			if( std::abs( closest - t ) <= _maxDt ) { ++count; }
+		}
 
-    std::deque<DataMap> _outputBuff;
+		if( _minSyncNum == 0 ) { return count == _registry.size(); }
+		else { return count >= _minSyncNum; }
+	}
 
-    // Parameters
-    unsigned int _bufferLen;
-    double _maxDt;
+	void RetrieveAndRemoveData( double t,
+	                            std::vector<KeyedStampedData>& out,
+	                            const WriteLock& lock )
+	{
+		CheckLockOwnership( lock, &_registryMutex );
 
+		typename std::map<double, Msg>::const_iterator iter;
+		typedef typename SourceRegistry::value_type Item;
+		BOOST_FOREACH( Item & item, _registry )
+		{
+			const Key& key = item.first;
+			SourceRegistration& reg = item.second;
+			if( !get_closest_eq( reg.buffer, t, iter ) ) { continue; }
+			double closest = iter->first;
+			if( std::abs( closest - t ) > _maxDt ) { continue; }
+
+			out.push_back( KeyedStampedData( key, iter->first, iter->second ) );
+			reg.buffer.erase( iter );
+		}
+	}
+
+	/*! \brief Removes all stamped data with time before and including specified t. */
+	void RemoveBeforeInclusive( double t, const WriteLock& lock )
+	{
+		CheckLockOwnership( lock, &_registryMutex );
+
+		typedef typename SourceRegistry::value_type Item;
+		BOOST_FOREACH( Item & item, _registry )
+		{
+			SourceRegistration& reg = item.second;
+			while( get_lowest_key( reg.buffer ) <= t )
+			{
+				remove_lowest( reg.buffer );
+			}
+		}
+	}
+
+
+	template<typename Lock>
+	void CheckStatus( const std::string& key, bool expect_reg,
+	                  const Lock& lock )
+	{
+		CheckLockOwnership( lock, &_registryMutex );
+
+		bool is_reg = _registry.count( key ) > 0;
+		if( expect_reg != is_reg )
+		{
+			std::stringstream ss;
+			ss << "Source: " << key << ( expect_reg ? " not registered!" : " already_registered" );
+			throw std::invalid_argument( ss.str() );
+		}
+	}
 };
 
 }
