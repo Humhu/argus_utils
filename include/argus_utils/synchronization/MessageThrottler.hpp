@@ -193,7 +193,8 @@ private:
             double elapsed = now - lastOutputTime;
             if( elapsed < 0 )
             {
-                throw std::runtime_error( "Negative time elapsed!" );
+                return 0;
+                //throw std::runtime_error( "Negative time elapsed!" );
             }
             double maxOutput = elapsed * rate;
             double numBuffered = double( buffer.size() );
