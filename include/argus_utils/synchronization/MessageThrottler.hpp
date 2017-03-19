@@ -4,6 +4,9 @@
 #include <cmath>
 #include <boost/foreach.hpp>
 #include <boost/circular_buffer.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+
 #include "argus_utils/synchronization/SynchronizationTypes.h"
 
 namespace argus
@@ -90,26 +93,42 @@ public:
 
         WriteLock outlock( _mutex );
 
-        Key highestKey;
-        double highestScore = 0;
+        if( _registry.size() == 0 ) { return false; }
+
+        std::vector<Key> keys;
+        std::vector<double> scores;
         BOOST_FOREACH( const Item& item, _registry )
         {
-            double score = item.second.ComputeNumToOutput( now );
-            if( score > highestScore )
-            {
-                highestScore = score;
-                highestKey = item.first;
-            }
+            keys.push_back( item.first );
+            scores.push_back( item.second.ComputeNumToOutput( now ) );
         }
-
+        
         // If no scores were nonzero, there are no outputs to be had!
-        if( highestScore == 0 )
+        double maxScore = *std::max_element( scores.begin(), scores.end() );
+        if( maxScore == 0 )
         {
             return false;
         }
 
-        Msg m = _registry.at( highestKey ).PopAndMark( now );
-        out = KeyedData( highestKey, m );
+        std::vector<Key> maxKeys;
+        for( unsigned int i = 0; i < scores.size(); ++i )
+        {
+            if( scores[i] == maxScore ) { maxKeys.push_back( keys[i] ); }
+        }
+
+        std::string maxKey;
+        if( maxKeys.size() == 1 )
+        {
+            maxKey = maxKeys[0];
+        }
+        else
+        {
+            boost::random::uniform_int_distribution<> tiebreak( 0, maxKeys.size()-1 );
+            maxKey = maxKeys[tiebreak(_randGen)];
+        }
+
+        Msg m = _registry.at( maxKey ).PopAndMark( now );
+        out = KeyedData( maxKey, m );
         return true;
     }
 
@@ -205,6 +224,8 @@ private:
     };
 
     mutable Mutex _mutex;
+
+    boost::mt19937 _randGen;
 
     typedef std::map<Key, SourceRegistration> SourceRegistry;
     SourceRegistry _registry;
