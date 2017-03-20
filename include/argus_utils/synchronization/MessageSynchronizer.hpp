@@ -1,10 +1,7 @@
 #pragma once
 
-#include <deque>
 #include <boost/foreach.hpp>
-#include <Eigen/Dense>
 #include <sstream>
-#include <stdexcept>
 
 #include "argus_utils/synchronization/SynchronizationTypes.h"
 #include "argus_utils/utils/MapUtils.hpp"
@@ -12,11 +9,6 @@
 namespace argus
 {
 
-/*! \brief Synchronizes buffers of timestamped data within some amount of tolerance.
- * NOTE: Assumes that data arrives in temporal order.
- * NOTE: Accesses to the output buffer are synchronized, but parameter setting and registration
- * is not
- */
 template<typename Msg, typename Key = std::string>
 class MessageSynchronizer
 {
@@ -31,10 +23,13 @@ public:
 		SetMinSyncNum( 0 );
 	}
 
-	// NOTE Does not change buffer length of existing buffers!
-	void SetBufferLength( unsigned int buffLen )
+	void SetBufferLength( double buffLen )
 	{
-		_bufferLen = buffLen;
+		if( buffLen < 0 )
+		{
+			throw std::invalid_argument( "Buffer length must be non-negative." );
+		}
+		_maxBufferLen = buffLen;
 	}
 
 	void SetMaxDt( double dt )
@@ -51,6 +46,7 @@ public:
 		_minSyncNum = num;
 	}
 
+
 	void RegisterSource( const Key& key )
 	{
 		WriteLock lock( _registryMutex );
@@ -58,60 +54,33 @@ public:
 		_registry[key];
 	}
 
-	void BufferData( const Key& key,
-	                 double t,
-	                 const Msg& m )
+	void BufferData( const Key& key, double stamp, const Msg& msg )
 	{
 		ReadLock lock( _registryMutex );
 		CheckStatus( key, true, lock );
-
-		SourceRegistration& reg = _registry.at( key );
-		WriteLock buffLock( reg.bufferMutex );
-
-		if( !reg.buffer.empty() )
-		{
-			double lastTime = get_highest_key( reg.buffer );
-			if( t < lastTime )
-			{
-				std::stringstream ss;
-				ss << "Time " << t << " predecdes last time " << lastTime;
-				throw std::invalid_argument( ss.str() );
-			}
-		}
-
-		reg.buffer[t] = m;
-
-		// Prune down to size
-		while( reg.buffer.size() > _bufferLen )
-		{
-			remove_lowest( reg.buffer );
-		}
+		WriteLock regLock( _registry.at( key ).mutex );
+		_registry.at( key ).buffer.emplace( std::piecewise_construct,
+		                                    std::forward_as_tuple( stamp ),
+		                                    std::forward_as_tuple( msg ) );
 	}
 
-	bool GetOutput( std::vector<KeyedStampedData>& out )
+	bool GetOutput( double now, std::vector<KeyedStampedData>& out )
 	{
 		out.clear();
-
-		// Nobody else can interact with registry here
 		WriteLock lock( _registryMutex );
 
-		// Quick fail if we have nothing to check!
-		if( _registry.size() == 0 ) { return false; }
+		unsigned int minSync = (_minSyncNum == 0) ? _registry.size() : _minSyncNum;
 
-		while( !AnyBuffersEmpty( lock ) )
+		double earliest;
+		while( FindEarliestOverspan( earliest, lock ) )
 		{
-			double earliest = GetEarliestTime( lock );
-			if( EnoughContain( earliest, lock ) )
+			unsigned int numReady = FindDataAtTime( earliest, out, false, lock );
+			if( numReady >= minSync )
 			{
-				RetrieveAndRemoveData( earliest, out, lock );
-				// Don't remove b/c there may be more synchronized sets
+				FindDataAtTime( earliest, out, true, lock );
 				return true;
 			}
-			else
-			{
-				// Trim off all data up to and including, and try again
-				RemoveBeforeInclusive( earliest, lock );
-			}
+			RemoveBeforeInclusive( earliest, lock );
 		}
 		return false;
 	}
@@ -120,88 +89,68 @@ private:
 
 	struct SourceRegistration
 	{
-		mutable Mutex bufferMutex;
+		mutable Mutex mutex;
 		std::map<double, Msg> buffer;
 	};
 
 	typedef std::map<Key, SourceRegistration> SourceRegistry;
-	mutable Mutex _registryMutex; // Locks all access to the registry
+	mutable Mutex _registryMutex;     // Locks all access to the registry
 	SourceRegistry _registry;
 
 	// Parameters
-	unsigned int _bufferLen;
+	double _maxBufferLen;
 	double _maxDt;
 	unsigned int _minSyncNum;
 
-	bool AnyBuffersEmpty( const WriteLock& lock ) const
+	bool FindEarliestOverspan( double& earliest,
+	                           WriteLock& lock ) const
 	{
 		CheckLockOwnership( lock, &_registryMutex );
 
 		typedef typename SourceRegistry::value_type Item;
-		BOOST_FOREACH( const Item &item, _registry )
+		BOOST_FOREACH( const Item & item, _registry )
 		{
 			const SourceRegistration& reg = item.second;
-			if( reg.buffer.empty() ) { return true; }
+			ReadLock regLock( reg.mutex );
+			// if( reg.buffer.size() > _maxBufferLen )
+			// {
+			// 	earliest = get_lowest_key( reg.buffer );
+			// 	return true;
+			// }
+			earliest = get_lowest_key( reg.buffer );
+			double latest = get_highest_key( reg.buffer );
+			if( (latest - earliest) > _maxBufferLen ) { return true; }
 		}
 		return false;
 	}
 
-	double GetEarliestTime( const WriteLock& lock ) const
+	unsigned int FindDataAtTime( double t,
+	                             std::vector<KeyedStampedData>& out,
+	                             bool retrieve,
+	                             const WriteLock& lock )
 	{
 		CheckLockOwnership( lock, &_registryMutex );
 
-		typedef typename SourceRegistry::value_type Item;
-		double earliest = std::numeric_limits<double>::infinity();
-		BOOST_FOREACH( const Item &item, _registry )
-		{
-			const SourceRegistration& reg = item.second;
-			double buffEarliest = get_lowest_key( reg.buffer );
-			if( buffEarliest < earliest )
-			{
-				earliest = buffEarliest;
-			}
-		}
-		return earliest;
-	}
-
-	bool EnoughContain( double t, const WriteLock& lock )
-	{
-		CheckLockOwnership( lock, &_registryMutex );
-
-		typename std::map<double, Msg>::const_iterator iter;
-		typedef typename SourceRegistry::value_type Item;
 		unsigned int count = 0;
-		BOOST_FOREACH( const Item &item, _registry )
-		{
-			const SourceRegistration& reg = item.second;
-			if( !get_closest_eq( reg.buffer, t, iter ) ) { continue; }
-			double closest = iter->first;
-			if( std::abs( closest - t ) <= _maxDt ) { ++count; }
-		}
-
-		if( _minSyncNum == 0 ) { return count == _registry.size(); }
-		else { return count >= _minSyncNum; }
-	}
-
-	void RetrieveAndRemoveData( double t,
-	                            std::vector<KeyedStampedData>& out,
-	                            const WriteLock& lock )
-	{
-		CheckLockOwnership( lock, &_registryMutex );
-
 		typename std::map<double, Msg>::const_iterator iter;
 		typedef typename SourceRegistry::value_type Item;
 		BOOST_FOREACH( Item & item, _registry )
 		{
 			const Key& key = item.first;
 			SourceRegistration& reg = item.second;
+			WriteLock regLock( reg.mutex );
 			if( !get_closest_eq( reg.buffer, t, iter ) ) { continue; }
 			double closest = iter->first;
 			if( std::abs( closest - t ) > _maxDt ) { continue; }
 
-			out.push_back( KeyedStampedData( key, iter->first, iter->second ) );
-			reg.buffer.erase( iter );
+			++count;
+			if( retrieve )
+			{
+				out.push_back( KeyedStampedData( key, iter->first, iter->second ) );
+				reg.buffer.erase( iter );
+			}
 		}
+		return count;
 	}
 
 	/*! \brief Removes all stamped data with time before and including specified t. */
@@ -235,6 +184,8 @@ private:
 			throw std::invalid_argument( ss.str() );
 		}
 	}
+
 };
+
 
 }
