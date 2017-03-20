@@ -22,7 +22,7 @@ find_package(Eigen3 REQUIRED)
 include( ExternalProject )
 ExternalProject_Add( sophus_external
   GIT_REPOSITORY https://github.com/strasdat/Sophus.git
-  GIT_TAG 62cf5b341d05518896e99f0c1368562201b4088f
+  GIT_TAG e35641ac17ba9c9e257207272fb141251efc87dd
   BUILD_COMMAND cmake --build .
   INSTALL_COMMAND make install
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}

@@ -3,7 +3,7 @@
 #include <Eigen/Geometry>
 #include <iostream>
 
-#include "sophus/se2.hpp"
+#include <sophus/se2.hpp>
 
 #include "argus_utils/geometry/GeometryTypes.h"
 #include "argus_utils/utils/LinalgTypes.h"
