@@ -5,7 +5,7 @@
 #include <argus_utils/utils/LinalgTypes.h>
 #include <argus_utils/synchronization/SynchronizationTypes.h>
 
-#include "argus_msgs/FloatVectorStamped.h"
+#include "broadcast/FloatVectorStamped.h"
 #include "broadcast/BroadcastInfoManager.h"
 #include "argus_utils/utils/ParamUtils.h"
 
@@ -66,7 +66,7 @@ private:
 	bool PullStream( const ros::Time& time, StampedFeatures& f ) const;
 	bool ReadCached( const ros::Time& time, StampedFeatures& f ) const;
 
-	void FeatureCallback( const argus_msgs::FloatVectorStamped::ConstPtr& msg );
+	void FeatureCallback( const broadcast::FloatVectorStamped::ConstPtr& msg );
 	void CheckTimespan();
 	double GetTimespan() const;
 };

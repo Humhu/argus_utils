@@ -9,8 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(catkin REQUIRED 
         COMPONENTS      message_generation
                         std_msgs
-                        argus_msgs
-                        nav_msgs
+                        
                         roscpp
                         rospy
                         argus_utils
@@ -23,14 +22,14 @@ find_package(Boost REQUIRED)
 # Use Eigen for matrices, linear algebra
 find_package(Eigen3 REQUIRED)
 
-add_service_files( FILES
-                   QueryFeatures.srv )
+add_message_files( FILES FloatVectorStamped.msg )
+
+add_service_files( FILES QueryFeatures.srv )
 
 catkin_python_setup()
 
 generate_messages( DEPENDENCIES
-                  std_msgs 
-                  argus_msgs )
+                  std_msgs )
 
 catkin_package( INCLUDE_DIRS     include
 
@@ -38,8 +37,6 @@ catkin_package( INCLUDE_DIRS     include
 
                 CATKIN_DEPENDS   message_runtime
                                  std_msgs
-                                 argus_msgs
-                                 nav_msgs
                                  roscpp 
                                  rospy
                                  argus_utils
@@ -68,9 +65,9 @@ target_link_libraries( broadcast
                       )
 add_dependencies( broadcast ${broadcast_EXPORTED_TARGETS} )
 
-add_executable( belief_state_broadcaster nodes/belief_state_broadcaster.cpp )
-add_dependencies( belief_state_broadcaster covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
-target_link_libraries( belief_state_broadcaster ${catkin_LIBRARIES} broadcast )
+# add_executable( belief_state_broadcaster nodes/belief_state_broadcaster.cpp )
+# add_dependencies( belief_state_broadcaster covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
+# target_link_libraries( belief_state_broadcaster ${catkin_LIBRARIES} broadcast )
 
 add_executable( broadcast_listener nodes/broadcast_listener.cpp )
 add_dependencies( broadcast_listener covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
@@ -78,7 +75,7 @@ target_link_libraries( broadcast_listener ${catkin_LIBRARIES} broadcast )
 
 
 ## Mark executables and/or libraries for installation
-install(TARGETS broadcast belief_state_broadcaster broadcast_listener
+install(TARGETS broadcast broadcast_listener
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

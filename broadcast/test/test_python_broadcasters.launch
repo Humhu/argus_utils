@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="broadcast" type="test_broadcast_transmitter.py" name="tx" output="screen"/>
+    <node pkg="broadcast" type="test_broadcast_receiver.py" name="rx" output="screen"/>
+
+</launch>

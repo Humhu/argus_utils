@@ -181,7 +181,7 @@ bool BroadcastReceiver::ReadCached( const ros::Time& time, StampedFeatures& f ) 
 	return true;
 }
 
-void BroadcastReceiver::FeatureCallback( const argus_msgs::FloatVectorStamped::ConstPtr& msg )
+void BroadcastReceiver::FeatureCallback( const broadcast::FloatVectorStamped::ConstPtr& msg )
 {
 	WriteLock lock( _mutex );
 	

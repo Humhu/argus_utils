@@ -1,6 +1,6 @@
 #pragma once
 
-#include "argus_msgs/FloatVectorStamped.h"
+#include "broadcast/FloatVectorStamped.h"
 #include "broadcast/QueryFeatures.h"
 #include "argus_utils/utils/LinalgTypes.h"
 #include <string>
@@ -35,8 +35,8 @@ struct StampedFeatures
 
 	StampedFeatures();
 	StampedFeatures( const ros::Time& t, const std::string& n, const VectorType& v );
-	StampedFeatures( const argus_msgs::FloatVectorStamped& msg );
-	argus_msgs::FloatVectorStamped ToMsg() const;
+	StampedFeatures( const broadcast::FloatVectorStamped& msg );
+	broadcast::FloatVectorStamped ToMsg() const;
 };
 
 }

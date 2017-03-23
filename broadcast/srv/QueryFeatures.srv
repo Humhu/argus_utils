@@ -15,4 +15,4 @@ time query_time
 
 ---
 
-argus_msgs/FloatVectorStamped features
+FloatVectorStamped features
