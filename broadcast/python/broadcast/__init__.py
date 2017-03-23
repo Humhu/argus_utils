@@ -1,1 +1,1 @@
-from broadcasters import *
+from broadcasters import Transmitter, Receiver

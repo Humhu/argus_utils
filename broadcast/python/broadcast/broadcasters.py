@@ -86,7 +86,7 @@ class Transmitter(object):
     ----------
     stream_name  : string
         Unique name for this broadcast
-    feature_size : string
+    feature_size : int
         Dimensionality of the broadcast feature vector
     description  : string (default '')
         Description of each feature dimension
@@ -108,7 +108,7 @@ class Transmitter(object):
     """
 
     def __init__(self, stream_name, feature_size, description='', mode='push',
-                 namespace='~', topic=None, **kwargs):
+                 namespace='~', topic=None, queue_size=10, cache_time=1.0):
 
         if len(namespace) > 0 and namespace != '~' and namespace[-1] != '/':
             namespace += '/'
@@ -133,10 +133,10 @@ class Transmitter(object):
         if mode == 'push':
             self.publisher = rospy.Publisher(topic_path,
                                              FloatVectorStamped,
-                                             queue_size=kwargs['queue_size'])
+                                             queue_size=queue_size)
         elif mode == 'pull':
             self.cache = TimeSeries(diff=ros_time_diff)
-            self.cache_time = kwargs['cache_time']
+            self.cache_time = cache_time
             self.server = rospy.Service(topic_path,
                                         QueryFeatures,
                                         self.__query_callback)
