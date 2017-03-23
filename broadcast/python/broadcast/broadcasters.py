@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from lookup.LookupInterface import register_lookup_target, retrieve_lookup_target
+from lookup import register_lookup_target, retrieve_lookup_target
 from broadcast.msg import FloatVectorStamped
 from broadcast.srv import QueryFeatures, QueryFeaturesRequest, QueryFeaturesResponse
 from broadcast.utils import TimeSeries, ros_time_diff
