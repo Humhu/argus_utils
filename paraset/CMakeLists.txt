@@ -23,6 +23,8 @@ add_service_files( FILES
                    GetParameterInfo.srv
 )
 
+catkin_python_setup()
+
 generate_messages( DEPENDENCIES
                    std_msgs )
 
