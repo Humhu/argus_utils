@@ -63,14 +63,13 @@ target_link_libraries( broadcast
                       ${Boost_LIBRARIES}
                       ${catkin_LIBRARIES}
                       )
-add_dependencies( broadcast ${broadcast_EXPORTED_TARGETS} )
+add_dependencies( broadcast broadcast_gencfg )
 
 # add_executable( belief_state_broadcaster nodes/belief_state_broadcaster.cpp )
 # add_dependencies( belief_state_broadcaster covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
 # target_link_libraries( belief_state_broadcaster ${catkin_LIBRARIES} broadcast )
 
 add_executable( broadcast_listener nodes/broadcast_listener.cpp )
-add_dependencies( broadcast_listener covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
 target_link_libraries( broadcast_listener ${catkin_LIBRARIES} broadcast )
 
 
