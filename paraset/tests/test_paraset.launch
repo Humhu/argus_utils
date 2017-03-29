@@ -1,0 +1,6 @@
+<launch>
+
+    <node pkg="paraset" type="TestRtpSetter.py" name="test_setter" output="screen"/>
+    <node pkg="paraset" type="TestRtpGetter.py" name="test_getter" output="screen"/>
+
+</launch>
