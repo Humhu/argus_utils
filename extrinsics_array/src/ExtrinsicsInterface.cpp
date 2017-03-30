@@ -42,6 +42,11 @@ void ExtrinsicsInterface::SetStaticExtrinsics( const std::string& from,
 	_tfBroadcaster.sendTransform( msg );
 }
 
+void ExtrinsicsInterface::SetStaticExtrinsics( const RelativePose& pose )
+{
+	SetStaticExtrinsics( pose.childID, pose.parentID, pose.pose );
+}
+
 PoseSE3 ExtrinsicsInterface::Convert( std::string fromIn,
                                       std::string toIn,
                                       const ros::Time& timeIn,

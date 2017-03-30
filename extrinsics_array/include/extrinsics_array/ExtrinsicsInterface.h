@@ -28,6 +28,7 @@ public:
 	void SetStaticExtrinsics( const std::string& from,
 	                          const std::string& to,
 	                          const PoseSE3& pose );
+	void SetStaticExtrinsics( const RelativePose& pose );
 
 	/*! \brief Attempt to convert a relative pose into the specified from/to
 	 * frames. */

@@ -1,10 +1,12 @@
 #include <ros/ros.h>
 
 #include "extrinsics_array/ExtrinsicsInterface.h"
+#include "extrinsics_array/ExtrinsicsCalibrationParsers.h"
 
 #include <argus_utils/geometry/GeometryUtils.h>
 #include <argus_utils/utils/ParamUtils.h>
 #include <unordered_map>
+#include <boost/foreach.hpp>
 
 using namespace argus;
 
@@ -15,25 +17,22 @@ int main( int argc, char** argv )
 	
 	ExtrinsicsInterface interface( nh );
 
+	std::vector<RelativePose> poses;
 	YAML::Node transforms;
 	GetParamRequired( ph, "", transforms );
-	YAML::Node::const_iterator iter;
-	for( iter = transforms.begin(); iter != transforms.end(); ++iter )
+	if( !ParseExtrinsicsCalibration( transforms, poses ) )
 	{
-		// TODO For some reason this segfaults if it's a const &
-		YAML::Node info = iter->second;
-		std::string child = iter->first.as<std::string>();
-		std::string parent;
-		PoseSE3 pose;
-		GetParamRequired( info, "parent_id", parent );
-		GetParamRequired( info, "pose", pose );
-		
-		ROS_INFO_STREAM( "Publishing extrinsics for: " << child << 
-		                 " relative to " << parent <<
-		                 " of " << pose );
-		interface.SetStaticExtrinsics( child, parent, pose );
+		ROS_ERROR_STREAM( "Could not parse extrinsics!" );
+		return -1;
 	}
 
+	BOOST_FOREACH( const RelativePose& pose, poses )
+	{
+		ROS_INFO_STREAM( "Publishing extrinsics for: " << pose.childID << 
+		                 " relative to " << pose.parentID <<
+		                 " of " << pose.pose );
+		interface.SetStaticExtrinsics( pose );
+	}
 	ros::spin();
 
 	return 0;
