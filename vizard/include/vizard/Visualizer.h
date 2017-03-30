@@ -32,12 +32,14 @@ public:
     virtual void SetColor( double r, double g, double b );
     virtual void SetAlpha( double a );
 
+    virtual void SetDuration( const ros::Duration& dur );
+
     virtual void SetTextColor( double r, double g, double b );
     virtual void SetTextAlpha( double a );
     virtual void SetTextOffset( const PoseSE3& off );
     virtual void SetTextSize( double h );
-    virtual void SetTextUniqueNames( bool e );
 
+    virtual void SetTimestampNamespaces( bool e );
     virtual void SetFrameID( const std::string& id );
     virtual void SetMarkerName( const std::string& n );
     virtual void SetShowName( bool e );
@@ -59,10 +61,12 @@ protected:
     double _hText;
     PoseSE3 _offsetText;
 
+    ros::Duration _duration;
+
     std::string _markerName;
     std::string _frameID;
     bool _showText;
-    bool _uniqueTextNames;
+    bool _timestampNamespaces;
 
     MarkerMsg InitMarker() const;
     void AddNameMarker( const std::string& name,
