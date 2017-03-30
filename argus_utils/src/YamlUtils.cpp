@@ -203,10 +203,9 @@ YAML::Node MergeYaml( const YAML::Node& a, const YAML::Node& b )
 
 YAML::Node SetPoseYaml( const PoseSE3& pose )
 {
-	YAML::Node node;
-	node["orientation"] = SetOrientationYaml( pose.GetQuaternion() );
-	node["position"] = SetPositionYaml( pose.GetTranslation() );
-	return node;
+	YAML::Node ori = SetOrientationYaml( pose.GetQuaternion() );
+	YAML::Node pos = SetPositionYaml( pose.GetTranslation() );
+	return MergeYaml(pos, ori);
 }
 
 // bool GetPoseYaml( const YAML::Node& node, PoseSE3& pose )
