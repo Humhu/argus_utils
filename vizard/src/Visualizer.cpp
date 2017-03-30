@@ -14,6 +14,7 @@ Visualizer::Visualizer()
     SetTextColor( 1.0, 1.0, 1.0 );
     SetTextOffset( PoseSE3( 0, 0, -0.1, 1, 0, 0, 0 ) );
     SetTextSize( 0.1 );
+    SetTextUniqueNames( false );
     
     SetFrameID( "" );
     SetMarkerName( "marker" );
@@ -39,6 +40,7 @@ void Visualizer::ReadParams( const ros::NodeHandle& nh )
         GetParam( nh, "text_blue", b ) ) { SetTextColor( r, g, b ); }
     if( GetParam( nh, "text_offset", off ) ) { SetTextOffset( off ); }
     if( GetParam( nh, "text_size", a ) ) { SetTextSize( a ); }
+    if( GetParam( nh, "text_unique_names", t ) ) { SetTextUniqueNames( t ); }
 
     if( GetParam( nh, "frame_id", s ) ) { SetFrameID( s ); }
     if( GetParam( nh, "marker_name", s ) ) { SetMarkerName( s ); }
@@ -99,6 +101,12 @@ void Visualizer::SetTextSize( double h )
     _hText = h;
 }
 
+void Visualizer::SetTextUniqueNames( bool e )
+{
+    _uniqueTextNames = e;
+}
+
+
 void Visualizer::SetFrameID( const std::string& id )
 {
     _frameID = id;
@@ -138,7 +146,7 @@ void Visualizer::AddNameMarker( const std::string& name,
     marker.header.stamp = ros::Time::now();
     marker.header.frame_id = _frameID;
     marker.action = MarkerMsg::ADD;
-    marker.ns = name;
+    marker.ns = _markerName;
     marker.id = VisualizerID::LABEL_ID;
     marker.type = MarkerMsg::TEXT_VIEW_FACING;
     marker.color.r = _rText;

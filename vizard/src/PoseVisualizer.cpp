@@ -18,7 +18,7 @@ geometry_msgs::Point vec3_to_point( const Eigen::Vector3d& vec )
 
 PoseVisualizer::PoseVisualizer()
 {
-	SetLinewidth( 1.0 );
+	SetLinewidth( 0.1 );
 	SetAlpha( 1.0 );
 	SetAxesLength( 1.0 );
 }

@@ -36,7 +36,8 @@ public:
     virtual void SetTextAlpha( double a );
     virtual void SetTextOffset( const PoseSE3& off );
     virtual void SetTextSize( double h );
-    
+    virtual void SetTextUniqueNames( bool e );
+
     virtual void SetFrameID( const std::string& id );
     virtual void SetMarkerName( const std::string& n );
     virtual void SetShowName( bool e );
@@ -61,6 +62,7 @@ protected:
     std::string _markerName;
     std::string _frameID;
     bool _showText;
+    bool _uniqueTextNames;
 
     MarkerMsg InitMarker() const;
     void AddNameMarker( const std::string& name,
