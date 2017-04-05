@@ -1,0 +1,26 @@
+<launch>
+
+    <node pkg="extrinsics_array" type="extrinsics_publisher_node" name="publisher" output="screen" launch-prefix="xterm -e gdb --args">
+        <rosparam>
+            link_0:
+                parent_id: base_link
+                pose:
+                    x: 1
+                    y: 0
+                    z: 0
+                    yaw: 0
+                    pitch: 0
+                    roll: 0
+            link_1:
+                parent_id: link_0
+                pose:
+                    x: 0
+                    y: 1
+                    z: 0
+                    yaw: 3.14
+                    pitch: 0
+                    roll: 0
+        </rosparam>
+    </node>
+
+</launch>

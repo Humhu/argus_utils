@@ -30,11 +30,28 @@ void ExtrinsicsInterface::SetMaxCacheTime( double t )
 	_tfBuffer = std::make_shared<tf2_ros::Buffer>( ros::Duration( t ) );
 }
 
+void ExtrinsicsInterface::SetStaticExtrinsics( const std::string& from,
+                                               const std::string& to,
+                                               const PoseSE3& pose )
+{
+	geometry_msgs::TransformStamped msg;
+	msg.header.stamp = ros::Time::now(); // Unused, doesn't matter
+	msg.header.frame_id = to;
+	msg.child_frame_id = from;
+	msg.transform = PoseToTransform( pose );
+	_tfBroadcaster.sendTransform( msg );
+}
+
+void ExtrinsicsInterface::SetStaticExtrinsics( const RelativePose& pose )
+{
+	SetStaticExtrinsics( pose.childID, pose.parentID, pose.pose );
+}
+
 PoseSE3 ExtrinsicsInterface::Convert( std::string fromIn,
                                       std::string toIn,
                                       const ros::Time& timeIn,
                                       const PoseSE3& poseIn,
-                                      std::string fromOut, 
+                                      std::string fromOut,
                                       std::string toOut )
 {
 	fromIn = Sanitize( fromIn );
@@ -48,9 +65,9 @@ PoseSE3 ExtrinsicsInterface::Convert( std::string fromIn,
 		if( toIn != toOut ) { parentExt = GetExtrinsics( toIn, toOut, timeIn ); }
 		return parentExt * poseIn * fromExt;
 	}
-	catch( ExtrinsicsException ex ) 
+	catch( ExtrinsicsException ex )
 	{}
-	
+
 	try
 	{
 		PoseSE3 fromExt, parentExt;
@@ -88,9 +105,9 @@ PoseSE3 ExtrinsicsInterface::GetExtrinsics( std::string from,
 	to = Sanitize( to );
 	std::string err;
 	// NOTE Assuming the transform should be static in the to frame
-	if( !_tfBuffer->canTransform( from, fromTime, 
-	                              to, toTime, 
-	                              to, ros::Duration(0), 
+	if( !_tfBuffer->canTransform( from, fromTime,
+	                              to, toTime,
+	                              to, ros::Duration( 0 ),
 	                              &err ) )
 	{
 		throw ExtrinsicsException( "Could get extrinsics of " + from + " to " +
@@ -98,10 +115,10 @@ PoseSE3 ExtrinsicsInterface::GetExtrinsics( std::string from,
 	}
 	geometry_msgs::TransformStamped msg = _tfBuffer->lookupTransform( to,
 	                                                                  toTime,
-	                                                                  from, 
+	                                                                  from,
 	                                                                  fromTime,
 	                                                                  to,
-	                                                                  ros::Duration(0) );
+	                                                                  ros::Duration( 0 ) );
 	return TransformToPose( msg.transform );
 }
 
@@ -109,7 +126,7 @@ std::string ExtrinsicsInterface::Sanitize( std::string in )
 {
 	if( in.front() == '/' )
 	{
-	  in.erase( 0, 1 );
+		in.erase( 0, 1 );
 	}
 	return in;
 }

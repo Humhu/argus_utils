@@ -30,8 +30,11 @@ struct RelativePose
 	PoseSE3 pose;
 
 	RelativePose();
+	RelativePose( const std::string& parent, const std::string& child, 
+	              const PoseSE3& pose, const ros::Time& time = ros::Time() );
 	RelativePose( const geometry_msgs::TransformStamped& msg );
-	geometry_msgs::TransformStamped ToMsg() const;
+	
+	geometry_msgs::TransformStamped ToTransformMsg() const;
 };
 
 }

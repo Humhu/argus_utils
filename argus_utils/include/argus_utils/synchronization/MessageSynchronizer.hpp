@@ -117,6 +117,7 @@ private:
 			// 	earliest = get_lowest_key( reg.buffer );
 			// 	return true;
 			// }
+			if( reg.buffer.empty() ) { continue; }
 			earliest = get_lowest_key( reg.buffer );
 			double latest = get_highest_key( reg.buffer );
 			if( (latest - earliest) > _maxBufferLen ) { return true; }
