@@ -82,7 +82,7 @@ struct FieldRetrieval<YAML::Node>
 		std::string ret = "";
 		if( base.Type() == YAML::NodeType::Map )
 		{
-			ret = base.as<std::string>();
+			ret = base.Scalar();
 
 		}
 		return ret;
