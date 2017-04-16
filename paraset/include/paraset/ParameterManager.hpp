@@ -14,6 +14,7 @@
 #include <memory>
 #include <deque>
 #include <boost/foreach.hpp>
+#include <boost/function.hpp>
 #include <sstream>
 
 namespace argus
@@ -24,6 +25,8 @@ template <typename T>
 class ParameterManager
 {
 public:
+
+	typedef boost::function<void(const T&)> Callback;
 
 	ParameterManager() : _name("") {}
 
@@ -46,6 +49,11 @@ public:
 		_infoServer = nodeHandle.advertiseService( "get_" + _name + "_info",
 		                                           &ParameterManager<T>::GetInfoCallback,
 		                                           this );
+	}
+
+	void AddCallback( const Callback& cb )
+	{
+		_callbacks.emplace_back( cb );
 	}
 
 	template <template<class> class Check, typename... Args >
@@ -85,6 +93,7 @@ private:
 	mutable Mutex _mutex;
 	T _currentValue;
 	std::deque<CheckPtr> _checks;
+	std::deque<Callback> _callbacks;
 
 	virtual bool ReadVariant( const RuntimeParam& var )
 	{
@@ -113,8 +122,15 @@ private:
 	{
 		RuntimeParam var = MsgToParamVariant( req.param );
 		if( !ReadVariant( var ) ) { return false; }
+		
 		var = _currentValue;
 		res.actual = ParamVariantToMsg( var );
+
+		BOOST_FOREACH( const Callback& cb, _callbacks )
+		{
+			cb( _currentValue );
+		}
+
 		return true;
 	}
 
