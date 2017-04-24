@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 
 #include "argus_utils/synchronization/SynchronizationTypes.h"
+#include "argus_utils/utils/ParamUtils.h"
 
 #include "paraset/ParasetCommon.h"
 #include "paraset/RuntimeParameter.h"
@@ -21,14 +22,14 @@ namespace argus
 {
 
 // TODO Introduce better support for booleans?
-template <typename T>
+template<typename T>
 class ParameterManager
 {
 public:
 
-	typedef boost::function<void(const T&)> Callback;
+	typedef boost::function<void ( const T& )> Callback;
 
-	ParameterManager() : _name("") {}
+	ParameterManager() : _name( "" ) {}
 
 	// TODO Have initialval set after checks are added?
 	void Initialize( ros::NodeHandle& nodeHandle,
@@ -43,7 +44,7 @@ public:
 		ROS_INFO_STREAM( "Initializing runtime parameter: " << _name << std::endl <<
 		                 "\tDescription: " << description << std::endl <<
 		                 "\tInitial value: " << initialVal );
-		_setServer = nodeHandle.advertiseService( "set_" + _name, 
+		_setServer = nodeHandle.advertiseService( "set_" + _name,
 		                                          &ParameterManager<T>::SetParameterCallback,
 		                                          this );
 		_infoServer = nodeHandle.advertiseService( "get_" + _name + "_info",
@@ -51,17 +52,27 @@ public:
 		                                           this );
 	}
 
+	void InitializeAndRead( ros::NodeHandle& nodeHandle,
+	                        const T& defaultVal,
+	                        const std::string& name,
+	                        const std::string& description )
+	{
+		T initVal;
+		GetParam( nodeHandle, name, initVal, defaultVal );
+		Initialize( nodeHandle, initVal, name, description );
+	}
+
 	void AddCallback( const Callback& cb )
 	{
 		_callbacks.emplace_back( cb );
 	}
 
-	template <template<class> class Check, typename... Args >
-	void AddCheck( Args&&... args )
+	template<template<class> class Check, typename ... Args>
+	void AddCheck( Args && ... args )
 	{
 		WriteLock lock( _mutex );
 		Validate();
-		CheckPtr c = std::make_shared<Check<T>>( std::forward<Args>( args )... );
+		CheckPtr c = std::make_shared<Check<T> >( std::forward<Args>( args ) ... );
 		_checks.push_back( c );
 		ROS_INFO_STREAM( "Runtime parameter: " << _name << " added check: " << c->GetDescription() );
 	}
@@ -101,7 +112,7 @@ private:
 		{
 			WriteLock lock( _mutex );
 			T val = boost::get<T>( var );
-			BOOST_FOREACH( const CheckPtr& check, _checks )
+			BOOST_FOREACH( const CheckPtr &check, _checks )
 			{
 				val = check->Project( val );
 			}
@@ -122,11 +133,11 @@ private:
 	{
 		RuntimeParam var = MsgToParamVariant( req.param );
 		if( !ReadVariant( var ) ) { return false; }
-		
+
 		var = _currentValue;
 		res.actual = ParamVariantToMsg( var );
 
-		BOOST_FOREACH( const Callback& cb, _callbacks )
+		BOOST_FOREACH( const Callback &cb, _callbacks )
 		{
 			cb( _currentValue );
 		}
@@ -142,7 +153,7 @@ private:
 		ss << "Description: " << _description << std::endl;
 		ss << "Type: " << RuntimeParamTraits<T>::name << std::endl;
 		ss << "Constraints:";
-		BOOST_FOREACH( const CheckPtr& check, _checks )
+		BOOST_FOREACH( const CheckPtr &check, _checks )
 		{
 			ss << " " << check->GetDescription();
 		}
