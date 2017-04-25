@@ -2,6 +2,7 @@
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/locks.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/lockable_adapter.hpp>
 
 namespace argus
@@ -12,6 +13,9 @@ namespace argus
 typedef boost::shared_mutex Mutex;
 typedef boost::shared_lock<Mutex> ReadLock;
 typedef boost::unique_lock<Mutex> WriteLock;
+
+typedef boost::recursive_mutex RecursiveMutex;
+typedef boost::unique_lock<RecursiveMutex> RecursiveLock;
 
 typedef boost::condition_variable_any ConditionVariable;
 
