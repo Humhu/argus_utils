@@ -11,7 +11,7 @@ class LookupError(Exception):
 
 lookup_namespace='/lookup'
 
-def register_lookup_target(target_name, target_namespace):
+def register_lookup_target(target_name, target_namespace, overwrite=True):
     """Writes a lookup entry in the lookup system, storing the fully resolved
     target namespace to a global ROS parameter.
 
@@ -21,6 +21,8 @@ def register_lookup_target(target_name, target_namespace):
         The lookup name to register
     target_namespace : string
         The ROS namespace to fully resolve in this current context and store
+    overwrite        : bool (default True)
+        Whether to overwrite an existing registration or fail
     """
     # NOTE Strip the trailing / character
     resolved_namespace = rospy.resolve_name(target_namespace)[:-1]
@@ -28,7 +30,10 @@ def register_lookup_target(target_name, target_namespace):
                   + resolved_namespace + ') to registry (' + lookup_namespace + ')')
     key = lookup_namespace + '/' + target_name
     if rospy.has_param(key):
-        raise LookupError('Lookup name %s already registered!' % target_name)
+        if not overwrite:
+            raise LookupError('Lookup name %s already registered!' % target_name)
+        else:
+            rospy.logwarn('Overwriting registration for %s', target_name)
     rospy.set_param(key, resolved_namespace)
 
 def retrieve_lookup_target(target_name, num_retries=5):
