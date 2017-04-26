@@ -180,7 +180,10 @@ class Transmitter(object):
         res = QueryFeaturesResponse()
 
         mode = from_pull_mode(req.time_mode)
-        res.features = self.cache.get_data(req.query_time, mode).data
+        features = self.cache.get_data(req.query_time, mode)
+        if features is None:
+            return None
+        res.features = features.data
         return res
 
 
