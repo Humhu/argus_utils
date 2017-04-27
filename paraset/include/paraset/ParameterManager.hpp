@@ -9,6 +9,7 @@
 #include "paraset/ParasetCommon.h"
 #include "paraset/RuntimeParameter.h"
 #include "paraset/SetRuntimeParameter.h"
+#include "paraset/GetRuntimeParameter.h"
 #include "paraset/GetParameterInfo.h"
 #include "paraset/ParamChecks.hpp"
 
@@ -47,6 +48,9 @@ public:
 		_setServer = nodeHandle.advertiseService( "set_" + _name,
 		                                          &ParameterManager<T>::SetParameterCallback,
 		                                          this );
+		_getServer = nodeHandle.advertiseService( "get_" + _name,
+		                                          &ParameterManager<T>::GetParameterCallback,
+												  this );
 		_infoServer = nodeHandle.advertiseService( "get_" + _name + "_info",
 		                                           &ParameterManager<T>::GetInfoCallback,
 		                                           this );
@@ -99,6 +103,7 @@ private:
 	std::string _description;
 
 	ros::ServiceServer _setServer;
+	ros::ServiceServer _getServer	
 	ros::ServiceServer _infoServer;
 
 	mutable Mutex _mutex;
@@ -142,6 +147,14 @@ private:
 			cb( _currentValue );
 		}
 
+		return true;
+	}
+
+	bool GetParameterCallback( paraset::GetRuntimeParameter::Request& req,
+	                           paraset::GetRuntimeParameter::Response& res )
+	{
+		RuntimeParam var = _currentValue;
+		res.param = ParamVariantToMsg( var );
 		return true;
 	}
 

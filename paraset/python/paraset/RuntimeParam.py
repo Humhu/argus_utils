@@ -6,6 +6,9 @@ from threading import Lock
 from paraset.msg import RuntimeParameter
 from paraset.srv import GetParameterInfo, GetParameterInfoRequest, GetParameterInfoResponse
 from paraset.srv import SetRuntimeParameter
+from paraset.srv import GetRuntimeParameter
+
+from argus_utils import wait_for_service
 
 _rtparam_to_type = {RuntimeParameter.PARAM_INVALID: None,
                     RuntimeParameter.PARAM_NUMERIC: float,
@@ -65,16 +68,16 @@ class RuntimeParamSetter:
             base_topic = base_topic[:-1]
 
         set_topic = '%s/set_%s' % (base_topic, name)
-        rospy.loginfo('Waiting for %s...', set_topic)
-        rospy.wait_for_service(set_topic)
+        wait_for_service(set_topic)
         self._set_proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter)
-        rospy.loginfo('Connected to %s', set_topic)
 
-        get_topic = '%s/get_%s_info' % (base_topic, name)
-        rospy.loginfo('Waiting for %s...', get_topic)
-        rospy.wait_for_service(get_topic)
-        self._info_proxy = rospy.ServiceProxy(get_topic, GetParameterInfo)
-        rospy.loginfo('Connected to %s', get_topic)
+        get_topic = '%s/get_%s' % (base_topic, name)
+        wait_for_service(get_topic)
+        self._get_proxy = rospy.ServiceProxy(set_topic, GetRuntimeParameter)
+
+        info_topic = '%s/get_%s_info' % (base_topic, name)
+        wait_for_service(info_topic)
+        self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
 
     def set_value(self, v):
         """Set the runtime parameter.
@@ -86,6 +89,16 @@ class RuntimeParamSetter:
             return _retrieve_rtparam_value(res.actual)
         except rospy.ServiceException as e:
             rospy.logerr('Could not set value: %s', str(e))
+            return None
+
+    def get_value(self):
+        """Get the runtime parameter value.
+        """
+        try:
+            res = self._get_proxy()
+            return _retrieve_rtparam_value(res.actual)
+        except rospy.ServiceException as e:
+            rospy.logerr('Could not get value: %s', str(e))
             return None
 
     def get_info(self):
@@ -129,6 +142,9 @@ class RuntimeParamGetter:
         self._set_server = rospy.Service('~set_%s' % name,
                                          SetRuntimeParameter,
                                          self.__set_callback)
+        self._get_server = rospy.Service('~get_%s' % name,
+                                         GetRuntimeParameter,
+                                         self.__get_callback)
         self._info_server = rospy.Service('~get_%s_info' % name,
                                           GetParameterInfo,
                                           self.__info_callback)
@@ -155,6 +171,9 @@ class RuntimeParamGetter:
 
         self.__set_value(recv_val)
         return _generate_rtparam_msg(self._value)
+
+    def __get_callback(self, req):
+        return _generate_rtparam_msg(self.value)
 
     def __info_callback(self, req):
         out = 'Description: %s\n' % self._description

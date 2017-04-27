@@ -20,6 +20,7 @@ add_message_files( FILES
 # Services
 add_service_files( FILES
                    SetRuntimeParameter.srv
+                   GetRuntimeParameter.srv
                    GetParameterInfo.srv
 )
 
