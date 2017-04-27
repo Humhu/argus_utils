@@ -103,7 +103,7 @@ private:
 	std::string _description;
 
 	ros::ServiceServer _setServer;
-	ros::ServiceServer _getServer	
+	ros::ServiceServer _getServer;
 	ros::ServiceServer _infoServer;
 
 	mutable Mutex _mutex;

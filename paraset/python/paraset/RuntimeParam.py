@@ -73,7 +73,7 @@ class RuntimeParamSetter:
 
         get_topic = '%s/get_%s' % (base_topic, name)
         wait_for_service(get_topic)
-        self._get_proxy = rospy.ServiceProxy(set_topic, GetRuntimeParameter)
+        self._get_proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter)
 
         info_topic = '%s/get_%s_info' % (base_topic, name)
         wait_for_service(info_topic)
@@ -96,7 +96,7 @@ class RuntimeParamSetter:
         """
         try:
             res = self._get_proxy()
-            return _retrieve_rtparam_value(res.actual)
+            return _retrieve_rtparam_value(res.param)
         except rospy.ServiceException as e:
             rospy.logerr('Could not get value: %s', str(e))
             return None
