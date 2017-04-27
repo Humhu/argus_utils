@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import numpy as np
 from lookup import register_lookup_target, retrieve_lookup_target
 from broadcast.msg import FloatVectorStamped
 from broadcast.srv import QueryFeatures, QueryFeaturesRequest, QueryFeaturesResponse
@@ -159,7 +160,6 @@ class Transmitter(object):
         feats : iterable of floats
             The feature values
         """
-
         if self.mode == 'push':
             msg = FloatVectorStamped()
             msg.header.stamp = time
@@ -244,7 +244,7 @@ class Receiver(object):
             if item is None:
                 return None, None
             else:
-                return item.time, item.data
+                return item.time, np.array(item.data)
 
         else:
             raise ValueError('Unknown stream mode %s' % self._mode)
