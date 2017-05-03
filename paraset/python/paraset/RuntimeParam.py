@@ -3,6 +3,7 @@
 
 import rospy
 from threading import Lock
+import time
 from paraset.msg import RuntimeParameter
 from paraset.srv import GetParameterInfo, GetParameterInfoRequest, GetParameterInfoResponse
 from paraset.srv import SetRuntimeParameter
@@ -56,9 +57,14 @@ class RuntimeParamSetter:
         The parameter type
     topic_path : string
         The fully-resolved parameter base ROS path
+    base_topic : string
+        The base namespace for the parameter
+    persistent : bool (default True)
+        Whether to re-create the service proxy on every call or not
     """
 
-    def __init__(self, param_type, name, base_topic):
+    def __init__(self, param_type, name, base_topic, persistent=True,
+                 n_retries=5):
         if param_type not in [float, str, bool]:
             raise ValueError('Invalid parameter type: %s' % str(param_type))
         self._type = param_type
@@ -68,47 +74,73 @@ class RuntimeParamSetter:
             base_topic = base_topic[:-1]
 
         set_topic = '%s/set_%s' % (base_topic, name)
-        wait_for_service(set_topic)
-        self._set_proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter)
-
         get_topic = '%s/get_%s' % (base_topic, name)
-        wait_for_service(get_topic)
-        self._get_proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter)
-
         info_topic = '%s/get_%s_info' % (base_topic, name)
-        wait_for_service(info_topic)
-        self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
+
+        def set_proxy(req):
+            wait_for_service(set_topic)
+            proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter)
+            return proxy(req)
+
+        def get_proxy(req):
+            wait_for_service(get_topic)
+            proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter)
+            return proxy(req)
+
+        def info_proxy(req):
+            wait_for_service(info_topic)
+            proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
+            return proxy(req)
+
+        self.persistent = persistent
+        if persistent:
+            self._set_proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter)
+            self._get_proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter)
+            self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
+        else:
+            self._set_proxy = set_proxy
+            self._get_proxy = get_proxy
+            self._info_proxy = info_proxy
+
+        self.n_retries = n_retries
 
     def set_value(self, v):
         """Set the runtime parameter.
         """
         val = self._type(v)
         rt = _generate_rtparam_msg(val)
-        try:
-            res = self._set_proxy(rt)
-            return _retrieve_rtparam_value(res.actual)
-        except rospy.ServiceException as e:
-            rospy.logerr('Could not set value: %s', str(e))
-            return None
+
+        for i in range(self.n_retries):
+            try:
+                res = self._set_proxy(rt)
+                return _retrieve_rtparam_value(res.actual)
+            except rospy.ServiceException as e:
+                rospy.logerr('%s could not set value: %s', self._name, str(e))
+                time.sleep(1.0)
+        return None
 
     def get_value(self):
         """Get the runtime parameter value.
         """
-        try:
-            res = self._get_proxy()
-            return _retrieve_rtparam_value(res.param)
-        except rospy.ServiceException as e:
-            rospy.logerr('Could not get value: %s', str(e))
-            return None
+        for i in range(self.n_retries):
+            try:
+                res = self._get_proxy()
+                return _retrieve_rtparam_value(res.param)
+            except rospy.ServiceException as e:
+                rospy.logerr('%s could not get value: %s', self._name, str(e))
+                time.sleep(1.0)
+        return None
 
     def get_info(self):
         """Retrieve the runtime parameter description.
         """
-        try:
-            return self._info_proxy()
-        except rospy.ServiceException as e:
-            rospy.logerr('Could not retrieve info: %s', str(e))
-            return None
+        for i in range(self.n_retries):
+            try:
+                return self._info_proxy()
+            except rospy.ServiceException as e:
+                rospy.logerr('%s could not retrieve info: %s', self._name, str(e))
+                time.sleep(1.0)
+        return None
 
 
 class RuntimeParamGetter:
