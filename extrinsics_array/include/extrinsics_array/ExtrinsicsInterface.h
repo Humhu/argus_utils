@@ -2,6 +2,7 @@
 
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 
 #include "extrinsics_array/ExtrinsicsCommon.h"
@@ -24,6 +25,12 @@ public:
 	void ReadParams( const ros::NodeHandle& ph );
 
 	void SetMaxCacheTime( double t );
+
+	void SetExtrinsics( const std::string& from,
+	                    const std::string& to,
+	                    const ros::Time& stamp,
+	                    const PoseSE3& pose );
+	void SetExtrinsics( const RelativePose& pose );
 
 	void SetStaticExtrinsics( const std::string& from,
 	                          const std::string& to,
@@ -60,7 +67,8 @@ private:
 
 	std::shared_ptr<tf2_ros::Buffer> _tfBuffer;
 	std::shared_ptr<tf2_ros::TransformListener> _tfListener;
-	tf2_ros::StaticTransformBroadcaster _tfBroadcaster;
+	tf2_ros::StaticTransformBroadcaster _tfStaticBroadcaster;
+	tf2_ros::TransformBroadcaster _tfBroadcaster;
 
 	static std::string Sanitize( std::string in );
 

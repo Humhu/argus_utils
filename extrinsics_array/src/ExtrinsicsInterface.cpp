@@ -30,21 +30,35 @@ void ExtrinsicsInterface::SetMaxCacheTime( double t )
 	_tfBuffer = std::make_shared<tf2_ros::Buffer>( ros::Duration( t ) );
 }
 
+void ExtrinsicsInterface::SetExtrinsics( const std::string& from,
+                                         const std::string& to,
+                                         const ros::Time& stamp,
+                                         const PoseSE3& pose )
+{
+	RelativePose rpose( to, from, pose, stamp );
+	return SetExtrinsics( rpose );
+}
+
+void ExtrinsicsInterface::SetExtrinsics( const RelativePose& pose )
+{
+	geometry_msgs::TransformStamped msg;
+	msg = pose.ToTransformMsg();
+	_tfBroadcaster.sendTransform( msg );
+}
+
 void ExtrinsicsInterface::SetStaticExtrinsics( const std::string& from,
                                                const std::string& to,
                                                const PoseSE3& pose )
 {
-	geometry_msgs::TransformStamped msg;
-	msg.header.stamp = ros::Time::now(); // Unused, doesn't matter
-	msg.header.frame_id = to;
-	msg.child_frame_id = from;
-	msg.transform = PoseToTransform( pose );
-	_tfBroadcaster.sendTransform( msg );
+	RelativePose rpose( to, from, pose );
+	return SetStaticExtrinsics( rpose );
 }
 
 void ExtrinsicsInterface::SetStaticExtrinsics( const RelativePose& pose )
 {
-	SetStaticExtrinsics( pose.childID, pose.parentID, pose.pose );
+	geometry_msgs::TransformStamped msg;
+	msg = pose.ToTransformMsg();
+	_tfStaticBroadcaster.sendTransform( msg );
 }
 
 PoseSE3 ExtrinsicsInterface::Convert( std::string fromIn,
