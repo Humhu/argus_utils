@@ -19,10 +19,6 @@ find_package(catkin REQUIRED
 # Use Boost for most utilities, threading
 find_package(Boost REQUIRED)
 
-# TODO Figure out how to make this included with argus_utils includes
-# Use Eigen for matrices, linear algebra
-find_package(Eigen3 REQUIRED)
-
 catkin_package(
 	INCLUDE_DIRS 	include
 	
@@ -38,7 +34,6 @@ catkin_package(
 catkin_python_setup()
 
 include_directories( include
-${EIGEN3_INCLUDE_DIR}
 					 ${Boost_INCLUDE_DIRS}
 					 ${catkin_INCLUDE_DIRS}
 )
@@ -52,7 +47,6 @@ target_link_libraries( lookup
 )
 
 add_executable( lookup_registrar nodes/lookup_registrar.cpp )
-add_dependencies( lookup_registrar lookup_gencfg )
 target_link_libraries( lookup_registrar lookup )
 
 ## Mark executables and/or libraries for installation

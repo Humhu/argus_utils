@@ -32,10 +32,6 @@ generate_messages( DEPENDENCIES
 # Use Boost for most utilities, threading
 find_package(Boost REQUIRED COMPONENTS random)
 
-# TODO Figure out how to make this included with argus_utils includes
-# Use Eigen for matrices, linear algebra
-find_package(Eigen3 REQUIRED)
-
 catkin_package( INCLUDE_DIRS    include
 
                 LIBRARIES       paraset
@@ -47,17 +43,15 @@ catkin_package( INCLUDE_DIRS    include
 
                 DEPENDS         Boost
                                 system_lib
-                                Eigen3
 )
 
 add_library( paraset
              src/ParasetCommon.cpp
              src/ParamChecks.cpp )
-add_dependencies( paraset paraset_gencfg ${paraset_EXPORTED_TARGETS} )
+add_dependencies( paraset ${paraset_EXPORTED_TARGETS} )
 target_link_libraries( paraset ${catkin_LIBRARIES} )
 
 include_directories( include
-                     ${EIGEN3_INCLUDE_DIR}
                      ${Boost_INCLUDE_DIRS}
                      ${catkin_INCLUDE_DIRS}
 )

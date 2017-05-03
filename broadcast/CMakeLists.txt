@@ -9,7 +9,6 @@ set(CMAKE_BUILD_TYPE Release)
 find_package(catkin REQUIRED 
         COMPONENTS      message_generation
                         std_msgs
-                        
                         roscpp
                         rospy
                         argus_utils
@@ -18,9 +17,6 @@ find_package(catkin REQUIRED
 
 # Use Boost for most utilities, threading
 find_package(Boost REQUIRED)
-
-# Use Eigen for matrices, linear algebra
-find_package(Eigen3 REQUIRED)
 
 add_message_files( FILES FloatVectorStamped.msg )
 
@@ -48,7 +44,6 @@ catkin_package( INCLUDE_DIRS     include
 
 include_directories( include
                     ${Boost_INCLUDE_DIRS}
-                    ${EIGEN3_INCLUDE_DIR}
                     ${catkin_INCLUDE_DIRS}
                     )
 
@@ -63,7 +58,6 @@ target_link_libraries( broadcast
                       ${Boost_LIBRARIES}
                       ${catkin_LIBRARIES}
                       )
-add_dependencies( broadcast broadcast_gencfg )
 
 # add_executable( belief_state_broadcaster nodes/belief_state_broadcaster.cpp )
 # add_dependencies( belief_state_broadcaster covreg_gencfg ${broadcast_EXPORTED_TARGETS} )
