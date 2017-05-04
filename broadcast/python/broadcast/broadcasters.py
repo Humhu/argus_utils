@@ -7,6 +7,7 @@ from broadcast.srv import QueryFeatures, QueryFeaturesRequest, QueryFeaturesResp
 from broadcast.utils import TimeSeries, ros_time_diff
 
 import rospy
+import time
 
 feature_size_key = 'feature_size'
 description_key = 'descriptions'
@@ -63,7 +64,9 @@ def retrieve_broadcast_info(name, num_retries=5):
             info[mode_key] = rospy.get_param(namespace + '/' + mode_key)
             return info
         except (LookupError, KeyError):
-            rospy.sleep(rospy.Duration(1.0))
+            rospy.logwarn('Could not find broadcast stream %s' % name)
+            time.sleep(1.0)
+    raise LookupError('Could not find broadcast info for %s' % name)
 
 pull_mode_dict = {QueryFeaturesRequest.CLOSEST_BEFORE: 'closest_before',
                   QueryFeaturesRequest.CLOSEST_AFTER: 'closest_after',
@@ -197,7 +200,9 @@ class Receiver(object):
     """
 
     def __init__(self, stream_name):
+        print 'Retrieving info for %s' % stream_name
         info = retrieve_broadcast_info(stream_name)
+        print 'Retrieved info for %s' % stream_name
 
         self._dim = info[feature_size_key]
         self._mode = info[mode_key]

@@ -2,6 +2,7 @@
 """
 
 import rospy
+import time
 
 class LookupError(Exception):
     """Represents an error retrieving information from the lookup system.
@@ -57,7 +58,7 @@ def retrieve_lookup_target(target_name, num_retries=5):
             key = lookup_namespace + '/' + target_name
             return rospy.get_param(key)
         except KeyError:
-            rospy.sleep(rospy.Duration(1.0))
+            time.sleep(1.0)
     raise LookupError('Lookup name %s not registered!' % target_name)
 
 
