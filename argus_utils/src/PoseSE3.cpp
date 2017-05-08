@@ -7,6 +7,9 @@
 namespace argus 
 {
 
+const int PoseSE3::VectorDimension;
+const int PoseSE3::TangentDimension;
+
 PoseSE3::PoseSE3() {}
 	
 PoseSE3::PoseSE3( double x, double y, double z, double qw, 

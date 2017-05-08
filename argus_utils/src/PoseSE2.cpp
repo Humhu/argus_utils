@@ -5,6 +5,9 @@
 namespace argus
 {
 
+const int PoseSE2::VectorDimension;
+const int PoseSE2::TangentDimension;
+
 PoseSE2::PoseSE2() {}
 
 PoseSE2::PoseSE2( const double x, const double y, const double theta ) 
