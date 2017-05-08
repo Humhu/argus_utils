@@ -94,8 +94,10 @@ class RuntimeParamSetter:
 
         self.persistent = persistent
         if persistent:
-            self._set_proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter)
-            self._get_proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter)
+            self._set_proxy = rospy.ServiceProxy(
+                set_topic, SetRuntimeParameter)
+            self._get_proxy = rospy.ServiceProxy(
+                get_topic, GetRuntimeParameter)
             self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
         else:
             self._set_proxy = set_proxy
@@ -110,39 +112,49 @@ class RuntimeParamSetter:
         val = self._type(v)
         rt = _generate_rtparam_msg(val)
 
-        for i in range(self.n_retries):
+        for i in range(self.n_retries + 1):
             try:
                 res = self._set_proxy(rt)
                 return _retrieve_rtparam_value(res.actual)
             except rospy.ServiceException as e:
-                rospy.logerr('%s could not set value: %s', self._name, str(e))
+                rospy.logwarn(
+                    '%s could not set value: %s, retrying...', self._name, str(e))
                 time.sleep(1.0)
+        rospy.logerr(
+            '%s could not set value: %s, all retries failed', self._name, str(e))
         return None
 
     def get_value(self):
         """Get the runtime parameter value.
         """
-        for i in range(self.n_retries):
+        for i in range(self.n_retries + 1):
             try:
                 res = self._get_proxy()
                 return _retrieve_rtparam_value(res.param)
             except rospy.ServiceException as e:
-                rospy.logerr('%s could not get value: %s', self._name, str(e))
+                rospy.logwarn(
+                    '%s could not get value: %s, retrying...', self._name, str(e))
                 time.sleep(1.0)
+        rospy.logwarn(
+            '%s could not get value: %s, all retries failed', self._name, str(e))
         return None
 
     def get_info(self):
         """Retrieve the runtime parameter description.
         """
-        for i in range(self.n_retries):
+        for i in range(self.n_retries + 1):
             try:
                 return self._info_proxy()
             except rospy.ServiceException as e:
-                rospy.logerr('%s could not retrieve info: %s', self._name, str(e))
+                rospy.logwarn(
+                    '%s could not retrieve info: %s, retrying...', self._name, str(e))
                 time.sleep(1.0)
+        rospy.logwarn(
+            '%s could not retrieve info: %s, all retries failed', self._name, str(e))
         return None
 
 
+# TODO Add retries to getter as well
 class RuntimeParamGetter:
     """Provides an interface for declaring and getting runtime parameters.
 
