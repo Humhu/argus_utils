@@ -1,4 +1,5 @@
 #include "lookup/InfoManager.h"
+#include <boost/thread/thread.hpp>
 
 #define RETRY_WAIT_TIME (0.1)
 
@@ -41,7 +42,9 @@ bool InfoManager<InfoStruct>::CheckMemberInfo( const std::string& memberName,
 			return true; 
 		}
 		ROS_INFO_STREAM( "Lookup failed. Retrying..." );
-		ros::Duration( RETRY_WAIT_TIME ).sleep(); // TODO Make a parameter
+
+		boost::this_thread::sleep( boost::posix_time::milliseconds(100) );
+		//ros::Duration( RETRY_WAIT_TIME ).sleep(); // TODO Make a parameter
 		// if( ros::Time::now() > start + timeout ) { return false; }
 		numRetries--;
 	}

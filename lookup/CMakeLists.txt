@@ -17,7 +17,7 @@ find_package(catkin REQUIRED
 )
 
 # Use Boost for most utilities, threading
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
 
 catkin_package(
 	INCLUDE_DIRS 	include

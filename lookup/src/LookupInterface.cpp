@@ -1,4 +1,5 @@
 #include "lookup/LookupInterface.h"
+#include <boost/thread/thread.hpp>
 
 namespace argus
 {
@@ -38,7 +39,8 @@ bool LookupInterface::ReadNamespace( const std::string& targetName,
 	ros::Time start = ros::Time::now();
 	do
 	{
-		ros::Duration( 0.5 ).sleep();
+		boost::this_thread::sleep( boost::posix_time::milliseconds(500) );
+		// ros::Duration( 0.5 ).sleep();
 		if( nodeHandle.getParam( path, resolvedNamespace ) ) { return true; }
 	} while( ros::Time::now() < start + timeout );
 	
