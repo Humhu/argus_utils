@@ -32,7 +32,7 @@ double GaussianLogPdf( const MatrixType& cov, const VectorType& x )
 {
 	Eigen::LDLT<MatrixType> ldlt( cov );
 	double exponent = x.dot( ldlt.solve( x ) );
-	double logdet = ldlt.vectorD().array().sum();
+	double logdet = ldlt.vectorD().array().log().sum();
 	double logz = x.size() * std::log( 2 * M_PI );
 	return -0.5 * (logz + logdet + exponent);
 }
@@ -202,11 +202,12 @@ protected:
 		}
 
 		_ldlt = Eigen::LDLT<MatrixType>( cov );
-		_L = _ldlt.matrixL() * _ldlt.vectorD().array().sqrt().matrix();
+		MatrixType D = _ldlt.vectorD().asDiagonal();
+		_L = _ldlt.matrixL() * D.array().sqrt().matrix();
 		_z = std::pow( 2 * M_PI, -_mean.size() / 2.0 )
 		     * std::pow( cov.determinant(), -0.5 );
 		_logz_det = -0.5 * _mean.size() * std::log( 2 * M_PI )
-		            - 0.5 * _ldlt.vectorD().array().sum();
+		            - 0.5 * _ldlt.vectorD().array().log().sum();
 	}
 };
 }
