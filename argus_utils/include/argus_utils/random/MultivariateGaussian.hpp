@@ -15,11 +15,30 @@
 
 namespace argus
 {
+
+inline
+double GaussianEntropy( const MatrixType& cov )
+{
+	unsigned int k = cov.rows();
+	Eigen::LDLT<MatrixType> ldlt( cov );
+	if( ldlt.info() != Eigen::ComputationInfo::Success )
+	{
+		return std::numeric_limits<double>::quiet_NaN();
+	}
+	double det = ldlt.vectorD().array().prod();
+	double base = 2 * M_PI * std::exp(1.0);
+	return 0.5 * std::log( std::pow( base, k ) * det );
+}
+
 // TODO
 inline
 double GaussianPDF( const MatrixType& cov, const VectorType& x )
 {
 	Eigen::LDLT<MatrixType> ldlt( cov );
+	if( ldlt.info() != Eigen::ComputationInfo::Success )
+	{
+		return std::numeric_limits<double>::quiet_NaN();
+	}
 	double exponent = -0.5 * x.dot( ldlt.solve( x ) );
 	double det = ldlt.vectorD().array().prod();
 	double z = 1.0 / ( std::pow( 2 * M_PI, x.size() / 2.0 )
@@ -31,6 +50,10 @@ inline
 double GaussianLogPdf( const MatrixType& cov, const VectorType& x )
 {
 	Eigen::LDLT<MatrixType> ldlt( cov );
+	if( ldlt.info() != Eigen::ComputationInfo::Success )
+	{
+		return std::numeric_limits<double>::quiet_NaN();
+	}
 	double exponent = x.dot( ldlt.solve( x ) );
 	double logdet = ldlt.vectorD().array().log().sum();
 	double logz = x.size() * std::log( 2 * M_PI );

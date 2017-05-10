@@ -6,6 +6,7 @@
 namespace argus 
 {
 
+// NOTE DEPRECATED
 /*! \class KalmanFilter KalmanFilter.h
  * \brief A basic discrete-time Kalman filter. */
 template < int StateDim = Eigen::Dynamic,

@@ -59,9 +59,11 @@ include_directories( include
 add_library( argus_utils
     src/GeometryUtils.cpp
 	src/FilterInfo.cpp
+	src/KalmanFilter.cpp
     src/ParamUtils.cpp
     src/PoseSE2.cpp
     src/PoseSE3.cpp
+	src/MathUtils.cpp
     src/MatrixUtils.cpp
     src/Semaphore.cpp
     src/WorkerPool.cpp
