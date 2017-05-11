@@ -72,6 +72,7 @@ UpdateInfo KalmanFilter::Update( const VectorType& y, const MatrixType& C,
 {
 	UpdateInfo info;
 	info.prior_state_cov = _P;
+	info.obs = y;
 
 	VectorType v = y - C * _x;
 	MatrixType V = C * _P * C.transpose() + R;

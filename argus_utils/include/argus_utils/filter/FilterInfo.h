@@ -47,6 +47,8 @@ struct PredictInfo
 struct UpdateInfo
 : public FilterInfoBase
 {
+	VectorType obs; // HACK Optional observation vector
+
 	MatrixType prior_state_cov; // State covariance before update
 	VectorType prior_obs_error; // Observation prediction error
 	MatrixType obs_error_cov; // Observation error covariance
