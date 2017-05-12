@@ -51,6 +51,7 @@ PredictInfo KalmanFilter::Predict( const VectorType& dx, const MatrixType& A,
                                    const MatrixType& Q )
 {
 	PredictInfo info;
+	info.prior_state = _x;
 	info.prior_state_cov = _P;
 	info.trans_jacobian = A;
 	info.trans_noise_cov = Q;
@@ -58,6 +59,7 @@ PredictInfo KalmanFilter::Predict( const VectorType& dx, const MatrixType& A,
 	_x = A * _x + dx;
 	_P = (A * _P * A.transpose()).eval() + Q;
 
+	info.post_state = _x;
 	info.post_state_cov = _P;
 	return info;
 }
@@ -71,6 +73,7 @@ UpdateInfo KalmanFilter::Update( const VectorType& y, const MatrixType& C,
                                  const MatrixType& R )
 {
 	UpdateInfo info;
+	info.prior_state = _x;
 	info.prior_state_cov = _P;
 	info.obs = y;
 
@@ -85,6 +88,7 @@ UpdateInfo KalmanFilter::Update( const VectorType& y, const MatrixType& C,
 	
 	info.prior_obs_error = v;
 	info.obs_error_cov = V;
+	info.post_state = _x;
 	info.post_state_cov = _P;
 	info.state_delta = K * v;
 	info.post_obs_error = y - C * _x;

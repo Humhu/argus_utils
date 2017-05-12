@@ -28,9 +28,13 @@ struct PredictInfo
 : public FilterInfoBase
 {
 	double step_dt; // The predict time step size
+	VectorType prior_state;
 	MatrixType prior_state_cov; // State covariance before predict step
+
 	MatrixType trans_jacobian; // Matrix used to propagate covariance
 	MatrixType trans_noise_cov; // The Q matrix used in this step
+	
+	VectorType post_state;
 	MatrixType post_state_cov; // State covariance after update step
 
 	PredictInfo();
@@ -49,12 +53,15 @@ struct UpdateInfo
 {
 	VectorType obs; // HACK Optional observation vector
 
+	VectorType prior_state;
 	MatrixType prior_state_cov; // State covariance before update
 	VectorType prior_obs_error; // Observation prediction error
 	MatrixType obs_error_cov; // Observation error covariance
 	
+	VectorType post_state;
 	MatrixType post_state_cov; // State covariance after update
-	VectorType state_delta; // Change applied to state
+	//TODO Remove
+	VectorType state_delta; // Change applied to state 
 	VectorType post_obs_error; // Post-update observation prediction error
 	
 	MatrixType kalman_gain; // Kalman gain matrix
