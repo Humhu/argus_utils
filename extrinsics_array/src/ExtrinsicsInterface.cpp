@@ -115,6 +115,11 @@ PoseSE3 ExtrinsicsInterface::GetExtrinsics( std::string from,
                                             std::string to,
                                             const ros::Time& toTime )
 {
+	if( from.empty() || to.empty() )
+	{
+		throw ExtrinsicsException( "Frames " + from + ", " + to + " cannot be empty!" );
+	}
+	
 	from = Sanitize( from );
 	to = Sanitize( to );
 	std::string err;
