@@ -25,25 +25,23 @@ PoseSE2::PoseSE2( const VectorType &vec )
 	_tform = Sophus::SE2d( vec(2), Sophus::SE2d::Point( vec(0), vec(1) ) );
 }
 
-PoseSE2::PoseSE2( const MatrixType& m ) 
+PoseSE2::PoseSE2( const MatrixType& H ) 
 {
-	if( m.cols() != 3 || m.rows() != 3 )
+	if( H.cols() != 3 || H.rows() != 3 )
 	{
 		throw std::runtime_error( "PoseSE2 must be constructed from 3x3 matrix.");
 	}
 	
-	Sophus::SE2d::Point trans( m(0,2), m(1,2) );
-	FixedMatrixType<2,2> rot = m.topLeftCorner<2,2>();
-	_tform = Sophus::SE2d( rot,
-	                       trans );
+	Rotation R( 0 );
+	R.fromRotationMatrix( H.topLeftCorner<2,2>() );
+	_tform = Sophus::SE2d( R.matrix(), Sophus::SE2d::Point( H(0,2), H(1,2) ) );
 }
 
 PoseSE2::PoseSE2( const FixedMatrixType<3,3>& H )
 {
-	Sophus::SE2d::Point trans( H(0,2), H(1,2) );
-	FixedMatrixType<2,2> rot = H.topLeftCorner<2,2>();	
-	_tform = Sophus::SE2d( rot,
-	                       trans );
+	Rotation R( 0 );
+	R.fromRotationMatrix( H.topLeftCorner<2,2>() );
+	_tform = Sophus::SE2d( R.matrix(), Sophus::SE2d::Point( H(0,2), H(1,2) ) );
 }
 
 PoseSE2::PoseSE2( const Translation2Type& t, const Rotation& r ) 

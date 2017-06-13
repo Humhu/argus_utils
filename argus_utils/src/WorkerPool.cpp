@@ -13,17 +13,20 @@ WorkerPool::~WorkerPool()
 
 void WorkerPool::SetNumWorkers( unsigned int n )
 {
+	Lock lock( _mutex );	
 	_numWorkers = n;
 }
 
 void WorkerPool::EnqueueJob( Job job )
 {
+	Lock lock( _mutex );	
 	_jobQueue.push( job );
 	_hasJobs.notify_one();
 }
 
 void WorkerPool::StartWorkers()
 {
+	Lock lock( _mutex );	
 	for( unsigned int i = 0; i < _numWorkers; i++) 
 	{
 		_workerThreads.create_thread( boost::bind( &WorkerPool::WorkerLoop, 
@@ -33,6 +36,7 @@ void WorkerPool::StartWorkers()
 
 void WorkerPool::StopWorkers()
 {
+	// TODO Acquire lock?
 	_workerThreads.interrupt_all();
 	_workerThreads.join_all();
 }
