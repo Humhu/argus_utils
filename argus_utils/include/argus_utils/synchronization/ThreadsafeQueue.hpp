@@ -19,7 +19,20 @@ public:
 	typedef Container<T, typename std::allocator<T> > ContainerType;
 
 	ThreadsafeQueue( size_t maxSize = std::numeric_limits<size_t>::max() )
-	: _maxSize( maxSize ) {}
+	: _maxSize( maxSize ), _live(true) {}
+
+	~ThreadsafeQueue()
+	{
+		Kill();
+	}
+
+	// Allows blocked threads to quit
+	void Kill()
+	{
+		_live = false;
+		_hasContents.notify_all();
+		_isEmpty.notify_all();
+	}
 
 	void SetMaxSize( size_t maxSize )
 	{
@@ -63,10 +76,13 @@ public:
 	void WaitPopFront( T& item )
 	{
 		WriteLock lock( _mutex );
-		while( _items.empty() )
+		while( _live && _items.empty() )
 		{
 			_hasContents.wait( lock );
 		}
+
+		if( !_live ) { return; }
+
 		item = _items.front();
 		_items.pop_front();
 		
@@ -79,10 +95,13 @@ public:
 	void WaitPopBack( T& item )
 	{
 		WriteLock lock( _mutex );
-		while( _items.empty() )
+		while( _live && _items.empty() )
 		{
 			_hasContents.wait( lock );
 		}
+
+		if( !_live ) { return; }
+		
 		item = _items.back();
 		_items.pop_back();	
 		
@@ -109,7 +128,7 @@ public:
 		return true;
 	}
 	
-	void TryPopBack( T& item )
+	bool TryPopBack( T& item )
 	{
 		WriteLock lock( _mutex );
 		while( _items.empty() )
@@ -148,7 +167,7 @@ public:
 	void WaitEmpty()
 	{
 		WriteLock lock( _mutex );
-		while( !_items.empty() )
+		while( _live && !_items.empty() )
 		{
 			_isEmpty.wait( lock );
 		}
@@ -157,7 +176,7 @@ public:
 	void WaitHasContents()
 	{
 		WriteLock lock( _mutex );
-		while( _items.empty() )
+		while( _live && _items.empty() )
 		{
 			_hasContents.wait( lock );
 		}
@@ -167,6 +186,7 @@ protected:
 
 	mutable Mutex _mutex;
 
+	bool _live;
 	size_t _maxSize;
 	ContainerType _items;
 	ConditionVariable _hasContents;
