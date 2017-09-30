@@ -154,14 +154,14 @@ public:
 		GetParamRequired( ph, "two_dimensional", twoD );
 		_featTraits = BeliefFeatureTraits( twoD );
 
-		GetParam( ph, "var_offset", _varOffset, 1E-6 );
+		// GetParam( ph, "var_offset", _varOffset, 1E-6 );
 
 		_featureDim = 0;
 		if( _usePose ) { _featureDim += _featTraits.PoseDim(); }     // Full pose with quaternion
 		if( _usePoseCov ) { _featureDim += _featTraits.PoseCovDim(); } // Independent covariance elements
 		if( _useVel ) { _featureDim += _featTraits.VelDim(); }      // Full velocity
 		if( _useVelCov ) { _featureDim += _featTraits.VelCovDim(); }  // Independent covariance elements
-		ROS_INFO_STREAM( "Feature dim: " << _featureDim );
+		ROS_INFO_STREAM( "Belief features dim: " << _featureDim );
 
 		BroadcastMode mode = StringToBroadcastMode( modeStr );
 		if( mode == PUSH_TOPIC )
@@ -203,7 +203,7 @@ private:
 	ros::Subscriber _odomSub;
 	unsigned int _featureDim;
 	bool _usePose, _usePoseCov, _useVel, _useVelCov;
-	double _varOffset;
+	// double _varOffset;
 	bool _twoDimensional;
 
 	void OdomCallback( const nav_msgs::Odometry::ConstPtr& msg )
