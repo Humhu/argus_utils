@@ -10,9 +10,14 @@ def ros_time_diff(a, b):
 
 class TimeSeries:
 
-    def __init__(self, diff):
+    def __init__(self, diff=None):
         self._items = SortedListWithKey(key=lambda item: item.time)
+        if diff is None:
+            diff = lambda x, y: x - y
         self._diff = diff
+
+    def __len__(self):
+        return len(self._items)
 
     def insert(self, time, val):
         query = self.find_exact(time)
@@ -20,6 +25,23 @@ class TimeSeries:
             self._items.add(TimeItem(time, val))
         else:
             self._items[query] = TimeItem(time, val)
+
+    def time_span(self):
+        return self._diff(self._items[-1].time, self._items[0].time)
+
+    def earliest_item(self):
+        return self._items[0]
+
+    def remove_earliest(self):
+        return self._items.pop(0)
+
+    def remove_latest(self):
+        return self._items.pop(-1)
+
+    def trim_earliest(self, tlen):
+        '''Removes all but the latest len time of data'''
+        while self.time_span() > tlen:
+            self.remove_earliest()
 
     def get_data(self, time, mode):
         if mode == 'closest_before':
@@ -115,12 +137,6 @@ class TimeSeries:
             return ina
         else:
             return inb
-
-    def __remove_earliest(self):
-        return self._items.pop(0)
-
-    def __remove_latest(self):
-        return self._items.pop(-1)
 
     def __repr__(self):
         temp = '{0}({1})'

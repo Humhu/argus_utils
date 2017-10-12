@@ -4,7 +4,7 @@ import numpy as np
 from lookup import register_lookup_target, retrieve_lookup_target
 from broadcast.msg import FloatVectorStamped
 from broadcast.srv import QueryFeatures, QueryFeaturesRequest, QueryFeaturesResponse
-from broadcast.utils import TimeSeries, ros_time_diff
+from argus_utils import *
 
 import rospy
 import time
@@ -199,7 +199,7 @@ class Receiver(object):
         Unique name for this broadcast
     """
 
-    def __init__(self, stream_name):
+    def __init__(self, stream_name, buff_len=10.0):
         print 'Retrieving info for %s' % stream_name
         info = retrieve_broadcast_info(stream_name)
         print 'Retrieved info for %s' % stream_name
@@ -207,6 +207,7 @@ class Receiver(object):
         self._dim = info[feature_size_key]
         self._mode = info[mode_key]
         self._description = info[description_key]
+        self._buff_len = buff_len
         if self._mode == 'pull':
             self.proxy = rospy.ServiceProxy(info[topic_key], QueryFeatures)
         elif self._mode == 'push':
@@ -256,6 +257,7 @@ class Receiver(object):
 
     def __push_callback(self, msg):
         self.cache.insert(msg.header.stamp, msg.values)
+        self.cache.trim_earliest(tlen=self._buff_len)
 
     @property
     def stream_feature_size(self):
