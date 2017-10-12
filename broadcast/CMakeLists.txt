@@ -58,6 +58,7 @@ target_link_libraries( broadcast
                       ${Boost_LIBRARIES}
                       ${catkin_LIBRARIES}
                       )
+add_dependencies( broadcast covreg_gencfg )
 
 add_executable( broadcast_listener nodes/broadcast_listener.cpp )
 target_link_libraries( broadcast_listener ${catkin_LIBRARIES} broadcast )
