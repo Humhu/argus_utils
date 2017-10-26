@@ -20,6 +20,11 @@ public:
 
 	VelocityIntegrator() : _maxBuffLen( 5.0 ) {}
 
+	VelocityIntegrator( const VelocityIntegrator& other )
+	: _maxBuffLen( other._maxBuffLen ),
+	  _buffer( other._buffer )
+	{}
+
 	void Reset()
 	{
 		WriteLock lock( _mutex );
@@ -42,13 +47,37 @@ public:
 		while( !_buffer.empty() )
 		{
 			double latest = get_highest_key(_buffer);
-			double earliest = get_highest_key(_buffer); 
+			double earliest = get_lowest_key(_buffer); 
 			if( (latest - earliest) > _maxBuffLen )
 			{
 				remove_lowest( _buffer );
 			}
 			else { break; }
 		}
+	}
+
+	VelocityType GetLatestVelocity() const
+	{
+		ReadLock lock( _mutex );
+		VelocityType vel = VelocityType::Zero();
+		if( _buffer.size() > 0 )
+		{
+			double latest = get_highest_key(_buffer);
+			vel = _buffer.at(latest).first;
+		}
+		return vel;
+	}
+
+	CovarianceType GetLatestCovariance() const
+	{
+		ReadLock lock( _mutex );
+		CovarianceType cov = CovarianceType::Zero();
+		if( _buffer.size() > 0 )
+		{
+			double latest = get_highest_key(_buffer);
+			cov = _buffer.at(latest).second;
+		}
+		return cov;
 	}
 
 	bool Integrate( double start, double finish,
