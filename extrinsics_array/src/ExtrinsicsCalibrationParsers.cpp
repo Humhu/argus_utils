@@ -17,8 +17,12 @@ bool ParseExtrinsicsCalibration( const YAML::Node& yaml, std::vector<RelativePos
 	for( iter = yaml.begin(); iter != yaml.end(); ++iter )
 	{
 		RelativePose pose;
-		pose.childID = iter->first.as<std::string>();
 		YAML::Node info = iter->second;
+
+		if( !GetParam( info, "frame_id", pose.childID ) )
+		{
+			pose.childID = iter->first.as<std::string>();
+		}
 		try
 		{
 			GetParamRequired( info, "parent_id", pose.parentID );
