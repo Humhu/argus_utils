@@ -19,7 +19,7 @@ public:
 
 	typedef std::shared_ptr<ExtrinsicsInterface> Ptr;
 
-	ExtrinsicsInterface( const ros::NodeHandle& nh );
+	ExtrinsicsInterface( const ros::NodeHandle& nh = ros::NodeHandle() );
 	ExtrinsicsInterface( const ros::NodeHandle& nh, const ros::NodeHandle& ph );
 
 	void ReadParams( const ros::NodeHandle& ph );

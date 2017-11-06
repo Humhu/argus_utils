@@ -8,6 +8,8 @@
 namespace argus
 {
 
+// TODO Update this interface to use exceptions like ExtrinsicsInterface?
+
 /*! \brief Basic lookup interface for information manager classes that use the
  * lookup system to retrieve/store object information. */
 template <typename InfoStruct>

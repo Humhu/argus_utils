@@ -44,6 +44,7 @@ void PopulateExtrinsicsCalibration( const std::vector<RelativePose>& poses, YAML
 {
 	BOOST_FOREACH( const RelativePose &p, poses )
 	{
+		// TODO Logic to catch '/'s in childID
 		YAML::Node subnode;
 		subnode["parent_id"] = p.parentID;
 		subnode["pose"] = SetPoseYaml( p.pose );

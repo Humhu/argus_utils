@@ -18,7 +18,7 @@ public:
 	typedef T DataType;
 	typedef Container<T, typename std::allocator<T> > ContainerType;
 
-	ThreadsafeQueue( size_t maxSize = std::numeric_limits<size_t>::max() )
+	ThreadsafeQueue( size_t maxSize = 0 )
 	: _maxSize( maxSize ), _live(true) {}
 
 	~ThreadsafeQueue()

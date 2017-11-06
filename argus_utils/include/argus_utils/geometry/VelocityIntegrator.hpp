@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <iostream>
 
 #include "argus_utils/synchronization/SynchronizationTypes.h"
 #include "argus_utils/utils/MapUtils.hpp"
@@ -21,8 +22,8 @@ public:
 	VelocityIntegrator() : _maxBuffLen( 5.0 ) {}
 
 	VelocityIntegrator( const VelocityIntegrator& other )
-	: _maxBuffLen( other._maxBuffLen ),
-	  _buffer( other._buffer )
+		: _maxBuffLen( other._maxBuffLen ),
+		_buffer( other._buffer )
 	{}
 
 	void Reset()
@@ -46,8 +47,8 @@ public:
 
 		while( !_buffer.empty() )
 		{
-			double latest = get_highest_key(_buffer);
-			double earliest = get_lowest_key(_buffer); 
+			double latest = get_highest_key( _buffer );
+			double earliest = get_lowest_key( _buffer );
 			if( (latest - earliest) > _maxBuffLen )
 			{
 				remove_lowest( _buffer );
@@ -62,8 +63,8 @@ public:
 		VelocityType vel = VelocityType::Zero();
 		if( _buffer.size() > 0 )
 		{
-			double latest = get_highest_key(_buffer);
-			vel = _buffer.at(latest).first;
+			double latest = get_highest_key( _buffer );
+			vel = _buffer.at( latest ).first;
 		}
 		return vel;
 	}
@@ -74,8 +75,8 @@ public:
 		CovarianceType cov = CovarianceType::Zero();
 		if( _buffer.size() > 0 )
 		{
-			double latest = get_highest_key(_buffer);
-			cov = _buffer.at(latest).second;
+			double latest = get_highest_key( _buffer );
+			cov = _buffer.at( latest ).second;
 		}
 		return cov;
 	}
@@ -83,15 +84,18 @@ public:
 	bool Integrate( double start, double finish,
 	                PoseType& disp,
 	                CovarianceType& cov,
-					bool extrapolate = true ) const
+	                bool extrapolate = true ) const
 	{
 		WriteLock lock( _mutex );
 		TangentBuffer::const_iterator iter;
-		if( !get_closest_lesser_eq( _buffer, start, iter ) ) { return false; }
+		if( !get_closest_lesser_eq( _buffer, start, iter ) )
+		{
+			return false;
+		}
 
 		disp = PoseSE3();
 		cov = CovarianceType::Zero();
-		
+
 		double prevTime = start;
 		TangentInfo prevInfo = iter->second;
 		bool done = false;
@@ -116,7 +120,7 @@ public:
 		}
 
 		if( done ) { return true; }
-		
+
 		if( extrapolate )
 		{
 			double dt = finish - prevTime;
@@ -142,5 +146,4 @@ private:
 
 typedef VelocityIntegrator<PoseSE2> VelocityIntegratorSE2;
 typedef VelocityIntegrator<PoseSE3> VelocityIntegratorSE3;
-
 }
