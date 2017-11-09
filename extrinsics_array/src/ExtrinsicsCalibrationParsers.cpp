@@ -59,7 +59,7 @@ void PopulateExtrinsicsCalibration( const std::vector<RelativePose>& poses, YAML
 		YAML::Node subnode;
 		subnode["parent_id"] = p.parentID;
 		subnode["pose"] = SetPoseYaml( p.pose );
-		subnode["frame_id"] = childSubID;
+		subnode["frame_id"] = p.childID;
 		yaml[childSubID] = subnode;
 	}
 }
