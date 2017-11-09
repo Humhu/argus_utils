@@ -48,11 +48,19 @@ void PopulateExtrinsicsCalibration( const std::vector<RelativePose>& poses, YAML
 {
 	BOOST_FOREACH( const RelativePose &p, poses )
 	{
-		// TODO Logic to catch '/'s in childID
+		std::string parentPrefix = p.parentID + "/";
+		size_t pos = p.childID.find( parentPrefix );
+		std::string childSubID = p.childID;
+		if( pos == 0 )
+		{
+			childSubID.replace( 0, parentPrefix.size(), "" );
+		}
+
 		YAML::Node subnode;
 		subnode["parent_id"] = p.parentID;
 		subnode["pose"] = SetPoseYaml( p.pose );
-		yaml[p.childID] = subnode;
+		subnode["frame_id"] = childSubID;
+		yaml[childSubID] = subnode;
 	}
 }
 
