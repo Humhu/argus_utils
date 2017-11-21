@@ -94,11 +94,9 @@ class RuntimeParamSetter:
 
         self.persistent = persistent
         if persistent:
-            self._set_proxy = rospy.ServiceProxy(
-                set_topic, SetRuntimeParameter)
-            self._get_proxy = rospy.ServiceProxy(
-                get_topic, GetRuntimeParameter)
-            self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo)
+            self._set_proxy = rospy.ServiceProxy(set_topic, SetRuntimeParameter, True)
+            self._get_proxy = rospy.ServiceProxy(get_topic, GetRuntimeParameter, True)
+            self._info_proxy = rospy.ServiceProxy(info_topic, GetParameterInfo, True)
         else:
             self._set_proxy = set_proxy
             self._get_proxy = get_proxy
