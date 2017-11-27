@@ -43,6 +43,11 @@ class TimeSeries:
         while self.time_span() > tlen:
             self.remove_earliest()
 
+    def trim_earliest_to(self, t):
+        '''Removes until earliest time > t'''
+        while len(self._items) > 0 and self._diff(t, self._items[0].time) > 0:
+            self.remove_earliest()
+
     def get_data(self, time, mode):
         if mode == 'closest_before':
             return self.get_closest_before(time)
